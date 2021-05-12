@@ -1,9 +1,7 @@
 {
   "current": {
-    "navbar_color": "#a9a34c",
-    "content_for_index": [
-      "trial no 1"
-    ]
+    "navbar_color": "#9e4ca9",
+    "content_for_index": []
   },
   "presets": {
     "Default": {}
