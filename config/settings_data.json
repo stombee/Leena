@@ -1,7 +1,9 @@
 {
   "current": {
     "navbar_color": "#a94c5c",
-    "content_for_index": []
+    "content_for_index": [
+      "my dev no 2"
+    ]
   },
   "presets": {
     "Default": {}
