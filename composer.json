@@ -1,0 +1,19 @@
+{
+    "name": "erenkucukersoftware/brugs-migration-tool",
+    "description": "Brugs migration tool.",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Eren Kucuker",
+            "email": "erenkucuker@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "Erenkucukersoftware\\BrugsMigrationTool\\": "src/"
+        }
+    },
+    "require": {}
+}
