@@ -1,15 +1,15 @@
 <?php
 
-namespace Erenkucukersoftware\BrugsMigrationTool;
+namespace Erenkucukersoftware\BrugsMigrationTool\Facades\Shopify\Components;
 
 use GuzzleHttp\Client;
 use Erenkucukersoftware\BrugsMigrationTool\Constants;
 
 
-class GraphQL{
+class QueryBuilder{
 
-  public $query = null;
-  public $updateable_fields = null;
+  public $query;
+  public $updateable_fields;
 
   public function __construct(){
     $this->updateable_fields = Constants::$UPDATEABLE_PRODUCT_FIELDS;

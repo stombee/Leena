@@ -55,4 +55,7 @@ class Constants
             'Dark Purple' => 'Purple Rugs',
             'Metallic' => 'Black & Grey Rugs'
   ];
+
+
+
 }
