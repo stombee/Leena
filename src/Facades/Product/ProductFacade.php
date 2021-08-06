@@ -13,9 +13,11 @@ class ProductFacade{
     public $field_format;
   
     public function __construct(){
-        //$this->product_db = new ProductDB();
-        //$this->product_fields = new ProductFields();
         $this->field_format = BrugsMigrationTool::$settings['API_MODE'] == 'GRAPHQL' ? 'json_line' : 'json';
+        $this->product_db = new ProductDB();
+        $products = $this->product_db->getProducts();
+        $this->product_fields = new ProductFields($products);
+        
         
     }
 

@@ -43,17 +43,8 @@ class Shopify{
   }
 
 
-  public function createJsonLineFile($products)
-  {
-
-
-
-
-
-
+  public function createJsonLineFile($products){
     $jsonLines = (new JsonLines())->enline($products);
-
-
     $file_name = 'product_update_feed.jsonl';
     $jsonl_file = Storage::disk('public')->put($file_name, $jsonLines);
 
@@ -61,6 +52,7 @@ class Shopify{
       return $file_name;
     }
   }
+
 
   public static function checkBulkActionStatus($bulkActionID)
   {

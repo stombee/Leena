@@ -5,14 +5,14 @@ namespace Erenkucukersoftware\BrugsMigrationTool\Facades\Product\Components;
 
 
 use Illuminate\Support\Facades\Log;
+use Erenkucukersoftware\BrugsMigrationTool;
 
-use Storage;
+
 
 ini_set('max_execution_time', 0);
 
 
 class ProductFields{
-  public $fields;
   public $products;
   public $variants;
   public $variant_shippings;
@@ -39,9 +39,9 @@ class ProductFields{
   public $custom_categories;
   
 
-  public function __construct($isDev){
-    $this->updateable_fields = Constants::$UPDATEABLE_PRODUCT_FIELDS;
-    
+  public function __construct($products){
+    $this->fields = BrugsMigrationTool::$settings['FIELDS'];
+    $this->products = $products;
     $this->shopify_data = BrugsMigrationTool::$settings['IS_DEV'] ? 'shopify_data_dev':'shopify_data';
   }
 
@@ -230,6 +230,8 @@ class ProductFields{
 
 
   }
+
+
 
   //MAIN SHOPIFY ENTITY GETS
   private function get_body_html($parent_data, $get_custom_description = false)
@@ -714,14 +716,11 @@ class ProductFields{
 
 
 
-  public function getFieldsForAll($fields){
+  public function run(){
     
-    $this->fields = $fields;  
+    if(BrugsMigrationTool::$settings['OPERATION'] == 'update')
+
     
-    //GET PRODUCT DATA FROM DB AND SET AS PRODUCTS 
-    $this->products = new  ProductDB;
-
-
     foreach($this->products as $product)
     {
 
@@ -744,7 +743,8 @@ class ProductFields{
       $tags = $this->get_tags($product);
 
 
-      if($product['real_collection'] == 'One of a Kind' && !empty($product['graphql_id'])){
+      if(!empty($product['graphql_id'])){
+
 
 
       if (in_array('descriptionHtml', $this->fields)) {

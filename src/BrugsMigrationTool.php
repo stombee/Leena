@@ -8,7 +8,13 @@ use Illuminate\Support\Facades\Log;
 use Erenkucukersoftware\BrugsMigrationTool\Constants;
 
 
+
 use Erenkucukersoftware\BrugsMigrationTool\Facades\Product\ProductFacade;
+use Erenkucukersoftware\BrugsMigrationTool\Facades\Shopify\ShopifyFlowFacade;
+
+use Erenkucukersoftware\BrugsMigrationTool\Enums\Operation;
+
+ini_set('max_execution_time', 0);
 
 
 class BrugsMigrationTool
@@ -22,49 +28,53 @@ class BrugsMigrationTool
         'IS_DEV' => false,
         'UPDATEABLE_FIELDS' => null,
         'API_MODE' => 'GRAPHQL',
-        'CUSTOM_GROUP' => null
+        'CUSTOM_GROUP' => null,
+        'MODE' => null
     ];
     
     public function __construct($entity, $fields, $entity_type,$operation,$isDev = false,$custom_group = null) 
     {
+        
+        $entity_array = explode(',', $entity);
+
         self::$settings = [
-            'ENTITY' => explode(',', $entity),
+            'ENTITY' => $entity_array,
             'FIELDS' => explode(',', $fields),
             'ENTITY_TYPE' => $entity_type,
             'OPERATION' => $operation,
             'IS_DEV' => $isDev,
             'UPDATEABLE_FIELDS' => Constants::$UPDATEABLE_PRODUCT_FIELDS,
             'API_MODE' =>  'GRAPHQL',
-            'CUSTOM_GROUP' => $custom_group
+            'CUSTOM_GROUP' => $custom_group,
+            'MODE' => $entity_array[0] == 'all' ? 'ALL':'PARTIAL'
         ];
 
     }
 
     public function createProducts(){
-        
         $products_facade = new ProductFacade();
-        
-        
         $shopify = new ShopifyFlowFacade();
         $response = $shopify->run($product_fields);
         return $response;
     }
 
     public function updateProducts()
-    {
+    {/*
         $product_fields = new ProductFields($this->isDev);
         $product_fields = $product_fields->getFieldsForAll($this->settings['FIELDS']);
         
         
         $product_jsonl_file = $this->createJsonLineFile($product_fields);
         
-        //$staged_upload_path = $this->uploadToShopify($product_jsonl_file);
-        //Log::debug('shopify json uploaded ');
-        //$graph_response = new GraphQL;
-        //$bulk_operation_status = $graph_response->generateGraphQLQuery($staged_upload_path,$this->fields)->send();
+        $staged_upload_path = $this->uploadToShopify($product_jsonl_file);
+        Log::debug('shopify json uploaded ');
+        $graph_response = new GraphQL;
+        $bulk_operation_status = $graph_response->generateGraphQLQuery($staged_upload_path,$this->fields)->send();
         
         return 
-        'You follow your bulk action with this id '/*.$bulk_operation_status->data->bulkOperationRunMutation->bulkOperation->id*/;
+        'You follow your bulk action with this id '.$bulk_operation_status->data->bulkOperationRunMutation->bulkOperation->id
+
+        */
     }
 
 
@@ -73,9 +83,13 @@ class BrugsMigrationTool
 
 
 
-    public function run()
-    {
-        
+
+    public function getResponse(){
+        return $this->response;
+    }
+
+    public function run(){
+
 
 
         //PRODUCT UPDATES
@@ -83,19 +97,15 @@ class BrugsMigrationTool
             $this->response = $this->updateProducts();
         }
 
-        
 
-        if(self::$settings['OPERATION'] == 'create') {
+
+        if (self::$settings['OPERATION'] == 'create') {
             $this->response = $this->createProducts();
         }
 
         return $this;
     }
 
-    public function getResponse()
-    {
-        return $this->response;
-    }
 
 
 }
