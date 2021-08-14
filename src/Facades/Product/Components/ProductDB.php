@@ -8,7 +8,8 @@ use Erenkucukersoftware\BrugsMigrationTool\BrugsMigrationTool;
 use Illuminate\Support\Facades\Log;
 
 use Erenkucukersoftware\BrugsMigrationTool\Models\ShopifyProduct;
-
+use Erenkucukersoftware\BrugsMigrationTool\Facades\Shopify\ShopifyFlowFacade;
+use Erenkucukersoftware\BrugsMigrationTool\Models\ShopifyProductShopifyData;
 
 class ProductDB{
 
@@ -823,6 +824,18 @@ class ProductDB{
   }
 
 
+  public function getImages(){
+    $images = DB::connection('mysql2')->select('SELECT * FROM br_images INNER JOIN br_image_variations on  br_images.id = br_image_id WHERE br_image_variations.image_type = \'large\' ');
+
+    $images_arr = [];
+    foreach($images as $image){
+      $images_arr[$image->real_design][] = $image;
+    }
+    
+    Log::debug('Images retrieved');
+    return $images_arr;
+  }
+
   public function getColorVariants(){
 
     $color_variant_count = DB::connection('mysql2')->select('SELECT count(*) as color_variant_count  FROM shopify_data AS bd, br_products AS mp WHERE bd.real_design = mp.real_design AND (bd.parent_id IS NOT NULL AND bd.parent_id != \'\')  ')[0]->color_variant_count;
@@ -854,25 +867,53 @@ class ProductDB{
       $color_variants_arr[$parent_id][] = ['parent_id' => $parent_id, 'design' => $color_variant->design, 'real_design' => $color_variant->real_design, 'tiny_image_url' => $color_variant->tiny_image_url, 'url' => $color_variant->url, 'this' => false];
     }
 
-    Log::debug('variants completed');
+    Log::debug('Color Variants Retrieved');
 
     return $color_variants_arr;
 
   }
 
+
+  public function getShopifyData(){
+    return DB::connection('mysql2')->select('SELECT * FROM'.' '.$this->shopify_data);
+  }
+
+
+
+  public function productsDiff($products_arr,$products_arr2){
+    $products_arr_diff = [];
+
+    foreach ($products_arr as $product) {
+      $founded = false;
+      foreach ($products_arr2 as $product2) {
+        if($product['real_design'] == $product2->real_design){
+          $founded = true;
+        }
+      }
+      if($founded == false){
+        $products_arr_diff[] = $product;
+      }
+    }
+
+    return $products_arr_diff;
+  }
+
+
   public function getProducts($isDummy = false){
     $this->isDummy = $isDummy;
-
     if($isDummy){
       return $this->dummyProducts;
     }
 
+    $images = $this->getImages();
+    
     
     $color_variants_arr = $this->getColorVariants();
-
+    
+    
     $products = collect();
 
-    $total_count = ShopifyProduct::where('real_design', '<', 'KDA-001')->where('display', '=', 1)->count();
+    $total_count = 1500; //ShopifyProduct::where('display', '=', 1)->count();
     $maxAtOneTime = 1500;
     $pages = ceil($total_count / $maxAtOneTime);
 
@@ -881,9 +922,9 @@ class ProductDB{
       $offset = (($i - 1) * $maxAtOneTime);
       $start = ($offset == 0 ? 0 : ($offset + 1));
 
-      $data = ShopifyProduct::with(['variants.shippings', 'variants.price', 'customCategory.custom_category_name', 'colors.color_name', 'type', 'subtype', $this->shopify_data])->withCount('variants')->where('real_design', '<', 'KDA-001')->where('display', '=', 1)->offset($start)->limit($maxAtOneTime)->get()->toArray();
+      $data = ShopifyProduct::with(['variants.shippings', 'variants.price','variants.upc', 'customCategory.custom_category_name', 'colors.color_name', 'type', 'subtype', $this->shopify_data])->withCount('variants')->where('display', '=', 1)->offset($start)->limit($maxAtOneTime)->get()->toArray();
 
-      $data = collect($data)->map(function ($data) use ($color_variants_arr) {
+      $data = collect($data)->map(function ($data) use ($color_variants_arr,$images) {
 
         $data['graphql_id'] = null;
         if (array_key_exists('shopify_product_id', $data[$this->shopify_data])) {
@@ -907,75 +948,43 @@ class ProductDB{
         if (array_key_exists($data['group_id'], $color_variants_arr) && count($color_variants_arr[$data['group_id']]) > 0) {
           $data['color_variants'] = $color_variants_arr[$data['group_id']];
         }
-
+        $data['images'] = isset($images[$data['real_design']]) ? $images[$data['real_design']] : null ;
+        
         
         return $data;
       });
-      Log::debug('product2 come');
-
-
-      Log::debug('product fields added');
-      
+      Log::debug('Products Retrieved');
       $products = $products->merge($data);
       
     }
 
 
-    $total_count = ShopifyProduct::where('real_design', '>', 'KDA-001')->where('display', '=', 1)->count();
-    $maxAtOneTime = 1500;
-    $pages = ceil($total_count / $maxAtOneTime);
+    if(BrugsMigrationTool::$settings['OPERATION'] == 'CREATE' ){
 
 
-    for (
-      $i = 1;
-      $i < ($pages + 1);
-      $i++
-    ) {
-      $offset = (($i - 1) * $maxAtOneTime);
-      $start = ($offset == 0 ? 0 : ($offset + 1));
-      $data = ShopifyProduct::with(['variants.shippings', 'variants.price', 'customCategory.custom_category_name', 'colors.color_name', 'type', 'subtype', $this->shopify_data])->withCount('variants')->where('real_design', '>', 'KDA-001')->where('display', '=', 1)->offset($start)->limit($maxAtOneTime)->get()->toArray();
-      $data = collect($data)->map(function ($data) use ($color_variants_arr) {
+      $shopify_data = $this->getShopifyData();
+      $products = $products = $products->toArray();
+      $new_products = $this->productsDiff($products,$shopify_data);
+      
+      return $new_products;
+      
 
-        $data['graphql_id'] = null;
-        if (array_key_exists('shopify_product_id', $data[$this->shopify_data])) {
-          $data['graphql_id'] = 'gid://shopify/Product/' . $data[$this->shopify_data]['shopify_product_id'];
-        }
-
-        $data['metafield_graphql_api_id'] = null;
-
-        if (isset($data[$this->shopify_data]['data'])) {
-          $json_data =  $data[$this->shopify_data]['data'];
-          $prod_json = json_decode($json_data, true);
-          if (isset($prod_json['metafield_graphql_api_id']['custom_data2'])) {
-
-            $data['metafield_graphql_api_id'] = $prod_json['metafield_graphql_api_id']['custom_data2'];
-          }
-        }
-
-
-        $data['color_variants'] = null;
-        if (array_key_exists($data['group_id'], $color_variants_arr) && count($color_variants_arr[$data['group_id']]) > 0) {
-          $data['color_variants'] = $color_variants_arr[$data['group_id']];
-        }
-
-
-        return $data;
-      });
-      Log::debug('product come');
-
-
-      Log::debug('product fields added');
-
-
-      $products = $products->merge($data);
+      
     }
 
 
 
+    $products = $this->addMissingFields($products);
+
+    Log::debug('Raw DB Product Ready');
+    return $products;
+  }
+
+  public function addMissingFields($products){
     $products = $products->toArray();
 
     foreach ($products as $index => $product) {
-      
+
       if (isset($product['variants']) && isset($product[$this->shopify_data]['variants_data'])) {
         foreach ($product['variants'] as $indexvar => $variant) {
           $variant_json = json_decode($product[$this->shopify_data]['variants_data'], true);
@@ -997,13 +1006,11 @@ class ProductDB{
         }
       }
     }
-    
-    
     return $products;
+
   }
 
-
- 
+  
 
 
 

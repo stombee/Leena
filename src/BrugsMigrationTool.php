@@ -7,14 +7,15 @@ namespace Erenkucukersoftware\BrugsMigrationTool;
 use Illuminate\Support\Facades\Log;
 use Erenkucukersoftware\BrugsMigrationTool\Constants;
 
+use App\Events\ProductsCreated;
 
 
 use Erenkucukersoftware\BrugsMigrationTool\Facades\Product\ProductFacade;
 use Erenkucukersoftware\BrugsMigrationTool\Facades\Shopify\ShopifyFlowFacade;
-
+use Carbon\Carbon;
 use Erenkucukersoftware\BrugsMigrationTool\Enums\Operation;
+use Erenkucukersoftware\BrugsMigrationTool\GraphQL\GraphQL;
 
-ini_set('max_execution_time', 0);
 
 
 class BrugsMigrationTool
@@ -52,10 +53,15 @@ class BrugsMigrationTool
     }
 
     public function createProducts(){
-        $products_facade = new ProductFacade();
-        $shopify = new ShopifyFlowFacade();
-        $response = $shopify->run($product_fields);
-        return $response;
+        $query = (new GraphQL)
+        ->productUpdate();
+        $products = (new ProductFacade())
+        ->run();
+        $shopify_response = (new ShopifyFlowFacade())
+        ->run($products);
+        $time = Carbon::now()->toIso8601String();
+        ProductsCreated::dispatch($products,$time);
+        return $shopify_response;
     }
 
     public function updateProducts()
@@ -93,13 +99,13 @@ class BrugsMigrationTool
 
 
         //PRODUCT UPDATES
-        if (self::$settings['ENTITY_TYPE'] == 'Products' && self::$settings['OPERATION'] == 'update') {
+        if (self::$settings['ENTITY_TYPE'] == 'Products' && self::$settings['OPERATION'] == 'UPDATE') {
             $this->response = $this->updateProducts();
         }
 
 
 
-        if (self::$settings['OPERATION'] == 'create') {
+        if (self::$settings['OPERATION'] == 'CREATE') {
             $this->response = $this->createProducts();
         }
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Erenkucukersoftware\BrugsMigrationTool\Facades\Shopify\Components;
+namespace Erenkucukersoftware\BrugsMigrationTool\Facades\GraphQL;
 
 use GuzzleHttp\Client;
 use Erenkucukersoftware\BrugsMigrationTool\Constants;
@@ -10,34 +10,20 @@ class QueryBuilder{
 
   public $query;
   public $updateable_fields;
+  
+  
 
   public function __construct(){
     $this->updateable_fields = Constants::$UPDATEABLE_PRODUCT_FIELDS;
+    
+
   }
 
-  public function send(){
-    $client = new \GuzzleHttp\Client();
-    $query = $this->query;
 
-
-    $response = $client->request('POST', 'https://boutiquerugs-dev.myshopify.com/admin/api/2021-07/graphql.json', [
-      'headers' => [
-        'Content-Type' => 'application/json',
-        'X-Shopify-Access-Token' => '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'
-      ],
-      'json' => [
-        'query' => $query
-      ]
-    ]);
-
-    $json = $response->getBody()->getContents();
-    $body = json_decode($json);
-    $data = $body;
-
-    return $data;
-  }
 
   public function generateGraphQLQuery($stagedUploadPath,$fields){
+    
+
     $fields_for_query = '';
     if (in_array('all', $fields)) {
       foreach($this->updateable_fields as $updateable){
@@ -125,8 +111,68 @@ class QueryBuilder{
   return $this;
   }
 
+  public function generateGetProductsQuery($cursor){
+      $query = '
+      {
+  products(first: 250'.($cursor ? ',after:'.$cursor:null).') {
+    edges {
+      cursor
+      node {
+        id
+        title
+        
+      }
+    }
+  }
+}
+      ';
+    $this->query = $query;
+    
+    return $this->query;
+  }
 
- 
+  public function generateGetProductQuery($time){
+    $query_field = 'created_at:>'.$time;
+
+    $query = '
+    {
+  products(first: 250, query:"'.$query_field. ' ") {
+    edges {
+      cursor
+      node {
+        id
+        title
+        vendor
+        status
+        tags
+        images(first: 20) {
+        edges {
+          node {
+            src
+            altText
+          }
+        }
+      }
+         variants(first: 20) {
+      edges {
+        node {
+          id
+          inventoryQuantity
+        }
+      }
+    }
+      }
+    }
+  }
+}
+    
+    ';
+    $this->query = $query;
+    return $this->query;
+    
+
+  }
+
+
   
-
 }

@@ -5,9 +5,9 @@ namespace Erenkucukersoftware\BrugsMigrationTool\Facades\Product\Components;
 
 
 use Illuminate\Support\Facades\Log;
-use Erenkucukersoftware\BrugsMigrationTool;
-
-
+use Erenkucukersoftware\BrugsMigrationTool\BrugsMigrationTool;
+use Erenkucukersoftware\BrugsMigrationTool\Constants;
+use Erenkucukersoftware\BrugsMigrationTool\Facades\Shopify\ShopifyFlowFacade;
 
 ini_set('max_execution_time', 0);
 
@@ -37,6 +37,7 @@ class ProductFields{
   public $metafields;
   public $meta_keywords;
   public $custom_categories;
+  
   
 
   public function __construct($products){
@@ -231,9 +232,16 @@ class ProductFields{
 
   }
 
+  
 
 
   //MAIN SHOPIFY ENTITY GETS
+
+  private function get_title($product){
+    return $product['collection'] .' '. $product['subtype']['name'];
+  }
+
+
   private function get_body_html($parent_data, $get_custom_description = false)
   {
     
@@ -506,8 +514,7 @@ class ProductFields{
     }
   }
 
-  private function get_tags($parent_data)
-  {
+  private function get_tags($parent_data){
     $this->get_category($parent_data);
     $this->get_materials($parent_data);
     $this->get_material_master();
@@ -639,8 +646,7 @@ class ProductFields{
 
 
   }
-  private function get_metafields($product)
-  {
+  private function get_metafields($product){
     $this->get_materials($product);
     $this->get_styles($product);
     $this->get_category($product);
@@ -648,17 +654,19 @@ class ProductFields{
     $this->get_colors($product);
     $desc = $this->get_body_html($product,true)['description'];
 
+    $product_id = isset($product[$this->shopify_data]['shopify_product_id']) ? $product[$this->shopify_data]['shopify_product_id'] : null;
+    $bc_product_id = isset($product[$this->shopify_data]['bc_product_id']) ? $product[$this->shopify_data]['bc_product_id'] : null;
     
     $custom_data = [
       'real_design' => $product['real_design'],
       'this_design' => $product['design'],
-      'product_id'  => $product[$this->shopify_data]['shopify_product_id'],
+      'product_id'  => $product_id,
       'category' => $this->category,
       'colors' => $this->colors,
       'materials' => $this->materials,
       'brand' => $product['brand'],
       'has_fringe' => $product['variants'][0]['fringe'],
-      'bc_product_id' => $product[$this->shopify_data]['bc_product_id'],
+      'bc_product_id' => $bc_product_id,
       'washable' => $product['washable'],
       'best_seller' => $product['top_seller'],
       'new_arrival' => $product['new_arrival'],
@@ -679,8 +687,7 @@ class ProductFields{
     return $metafield;
 
   }
-  private function get_metakeywords($product)
-  {
+  private function get_metakeywords($product){
     $this->get_materials($product);
     $this->get_colors($product);
     $productType = 'Area Rug';
@@ -689,86 +696,160 @@ class ProductFields{
    $colors = explode(',',$this->colors);
    $materials = explode(',',$this->materials);
 
-  $k = array();
-  $k[] = $product["collection"];
-  $k[] = $product["design"];
-  foreach ($colors as $color) {
+    $k = array();
+    $k[] = $product["collection"];
+    $k[] = $product["design"];
+    foreach ($colors as $color) {
     $k[] = $color . ' ' . $productType;
-  }
-  if (!empty($product["construction"])) $k[] = $product["construction"] . ' ' . $productType;
-  foreach($materials as $material){
-  $k[] = $material. ' ' . $productType;
-  }
+    }
+    if (!empty($product["construction"])) $k[] = $product["construction"] . ' ' . $productType;
+    foreach($materials as $material){
+    $k[] = $material. ' ' . $productType;
+    }
 
-  if (!empty($product["backing"])) $k[] = $product["backing"] . ' ' . $productType;
-  if (!empty($product["pile"])) $k[] = $product["pile"] . ' ' . $productType;
-  if (!empty($product["style"])) $k[] = $product["style"];
-
-  
-  $this->meta_keywords = $k;
-  return $this;
-  }
-
-
+    if (!empty($product["backing"])) $k[] = $product["backing"] . ' ' . $productType;
+    if (!empty($product["pile"])) $k[] = $product["pile"] . ' ' . $productType;
+    if (!empty($product["style"])) $k[] = $product["style"];
 
   
+    $this->meta_keywords = $k;
+    return $this;
+  }
+
+  
+  private function get_variants($product){
+    $variants  = $product['variants'];
+    $variants_arr = [];
+    foreach($variants as $variant){
+      $price = $variant['price']['price'] / 100;
+      $sku = $variant['sku'];
+      $real_sku = $variant['real_sku'];
+      $options = [$variant['size'] .' '.$variant['shape']];
+      $taxable = true;
+      $requires_shipping = true;
+      $barcode = (string) $variant['upc']['upc'];
+      $weight = number_format($variant['shippings']['weight_lbs'], 2);
+      $imageSrc= '';
+      if(!empty($product['images'])){
+        foreach ($product['images'] as $image) {
+          if ($image->real_sku == $real_sku) {
+            $imageSrc = $image->image_path_compressed;
+          }
+        }
+      }
+
+      
+
+    $variants_arr[] = [
+      'price' => $price,
+      'sku' => $sku,
+      'options' => $options,
+      'taxable' => $taxable,
+      'requiresShipping' => $requires_shipping,
+      'imageSrc' => $imageSrc,
+      'barcode' => $barcode,
+      'weight' => $weight,
+      'weightUnit' => 'POUNDS'
+  ];
+      
+
+    }
+
+    return $variants_arr;
+  }
+
+
+  private function get_vendor(){
+    return 'Boutique Rugs';
+  }
+
+
+
+  private function get_images($product){
+    $images = $product['images'];
+    $images_array = [];
+    if(!empty($images)){
+    foreach($images as $image){
+      $image_path_compressed = $image->image_path_compressed;
+      $images_array[]['src'] = $image_path_compressed;
+    }
+    }
+    return $images_array;
+
+  }
 
 
 
 
   public function run(){
     
-    if(BrugsMigrationTool::$settings['OPERATION'] == 'update')
+    if(BrugsMigrationTool::$settings['OPERATION'] == 'UPDATE'){
 
     
-    foreach($this->products as $product)
-    {
+      foreach($this->products as $product)
+      {
 
 
-      /*
-      foreach($product['variants'] as $variant){
-        if(isset($variant['variant_graph_id'])){
-        $price = $variant['price']['price'];
-        $price = $price / 100;
-        $variant_id = $variant['variant_graph_id'];
-        $this->result['input']['id'] = $variant_id;
-        $this->result['input']['price'] = $price;
-        $this->results[] = $this->result;
+        /*
+        foreach($product['variants'] as $variant){
+          if(isset($variant['variant_graph_id'])){
+          $price = $variant['price']['price'];
+          $price = $price / 100;
+          $variant_id = $variant['variant_graph_id'];
+          $this->result['input']['id'] = $variant_id;
+          $this->result['input']['price'] = $price;
+          $this->results[] = $this->result;
+          }
         }
+        */
+
+        //6729297035456
+
+        $tags = $this->get_tags($product);
+
+
+        //if(!empty($product['graphql_id'])){
+
+
+
+        if (in_array('descriptionHtml', $this->fields)) {
+          $this->result['input']['descriptionHtml'] = $this->get_body_html($product);
+        }
+
+    
+
+        if(in_array('metafields', $this->fields)){
+          $this->result['input']['metafields'] = $this->get_metafields($product);
+        }
+
+
+        $this->result['input']['id'] = $product['graphql_id'];
+        if (in_array('tags', $this->fields)) {
+          $this->result['input']['tags'] = $this->get_tags($product);
+          Log::debug($this->result['input']['tags']);
+        }
+        
+        $this->results[] = $this->result;
       }
-      */
+      
+    }
+    
 
-      //6729297035456
-
-      $tags = $this->get_tags($product);
-
-
-      if(!empty($product['graphql_id'])){
-
-
-
-      if (in_array('descriptionHtml', $this->fields)) {
-        $this->result['input']['descriptionHtml'] = $this->get_body_html($product);
-      }
-
-   
-
-      if(in_array('metafields', $this->fields)){
+    //OPERATION CREATE
+    if(BrugsMigrationTool::$settings['OPERATION'] == 'CREATE'){
+      foreach($this->products as $product){
+        $this->result['input']['title'] = $this->get_title($product);
+        $this->result['input']['vendor'] = $this->get_vendor();
+        $this->result['input']['variants'] = $this->get_variants($product);
         $this->result['input']['metafields'] = $this->get_metafields($product);
+        $this->result['input']['tags'] = $this->get_tags($product);
+        $this->result['input']['images'] = $this->get_images($product);
+        $this->results[] = $this->result;
+
       }
-
-
-      $this->result['input']['id'] = $product['graphql_id'];
-       if (in_array('tags', $this->fields)) {
-         $this->result['input']['tags'] = $this->get_tags($product);
-         Log::debug($this->result['input']['tags']);
-       }
-      
-      $this->results[] = $this->result;
     }
-      
 
-    }
+    //}
     
     return $this->results;
     

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 use Erenkucukersoftware\BrugsMigrationTool\Models\ShopifyProduct;
+use Erenkucukersoftware\BrugsMigrationTool\Models\ShopifyProductUpc;
 
 
 class ShopifyProductVariant extends Model
@@ -36,5 +37,9 @@ class ShopifyProductVariant extends Model
         return $this->hasMany(Image::class, 'real_sku', 'real_sku');
     }
 
-   
+    public function upc(){
+        return $this->hasOne(ShopifyProductUpc::class, 'real_sku', 'real_sku');
+    }
+
+
 }

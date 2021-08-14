@@ -3,11 +3,11 @@
 
 namespace Erenkucukersoftware\BrugsMigrationTool\Enums;
 
-use Eloquent\Enumeration\AbstractEnumeration;
 
 
 
-  final class Operation extends AbstractEnumeration{
+
+  class Operation{
     const UPDATE = 0;
     const CREATE = 1;
   }
