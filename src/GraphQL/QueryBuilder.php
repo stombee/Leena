@@ -5,6 +5,17 @@ namespace Erenkucukersoftware\BrugsMigrationTool\GraphQL;
 
 use Erenkucukersoftware\BrugsMigrationTool\Constants;
 
+class Quoted {
+  private $value;
+  public function __construct($value)
+  {
+      $this->value = $value;
+  }
+  public function __toString()
+  {
+      return '"' . $this->value.'"';  
+  }
+}
 
 class QueryBuilder{
 
@@ -14,7 +25,7 @@ class QueryBuilder{
   public $mutation;
   public $queryType;
   public $response;
-  public $fields;
+  public $field;
   public $attributes;
   public $cursor = false;
   
@@ -39,7 +50,7 @@ class QueryBuilder{
   }
 
 
-  public static function operation($operation){
+  public static function operation($operation="query"){
     self::$operation = $operation ;
     return new self;
   }
@@ -49,75 +60,82 @@ class QueryBuilder{
     return $this;
   }
 
-  public function fields(Array $fields){
-    $fields = collect($fields);
-    $fields = $fields->mapToGroups(function ($item, $key) {
-      $item = explode('.',$item);
-      return [$item[0]=>$item[1]];
-    })->toArray();
-    $this->fields = $fields;
-    
-    return $this;
-  }
+  public function fields(Array $fields, $name=""){
 
-  public function setFieldAttribute($field,$attributeName,$attributeValue){
-    $this->attributes[$field][] = [$attributeName=>$attributeValue];
-    return $this;
-  }
-
-  public function queryType($queryType){
-    $this->queryType = $queryType;
-    return $this;
-  }
-
-  public function renderFields(){
-    
-    $fields = '';
-    foreach($this->fields as $name => $field){
-
-      $attributes = $this->renderAttributes($name);
-      //$fields .= $name. ;
-    }
-    return $fields;
-  }
-
-  public function renderSubFields(){
-
-  }
-
-  public function renderAttributes($field){
-    $attributes_arr = $this->attributes[$field];
-    
-    $attributes = '';
-    foreach($attributes_arr as $name => $value){
-      dd($name,$value);
-      $attributes .= $name.':'.$value;
-    }
-    dd($attributes);
-    return $attributes;
-  }
-
-
-
-  
-
-  public function renderQuery(){
     $query = '';
-    $query .= $this->queryType == 'mutation' ? 'mutation {':'{' ;
-    $query .= 
-    
+    foreach($fields as $field){
+        
+        $query .= $field . ' ' ;
+    }
 
-    $query .= '}';
-    dd($query);
+    if ($name != "") {
+      $this->field = $name .' { '. $query . '}';
+    }
+    else {
+      $this->field = $query;
+    }
+    
+    
+    return $this;
   }
 
 
+  public function queryType($queryType, $input=null, $name=""){
+    $this->queryType = $queryType;
+    if ($input != null) {
+      $input_params = "";
+    
+      foreach ($input as $key => $value) {
+        $input_params .=  $key . ':' . $value . ', ';
+      }
+      $input_params = substr($input_params, 0, strlen($input_params)-2);
+    
+      $this->queryType .= " " . $name . "(" . $input_params . ")";
+
+    }
+    return $this;
+  }
+
+  public function query($input=null, $name, $input_name=""){
+    if ($input != null) {
+      $input_params = '';
+      foreach ($input as $key => $value) {
+        $input_params .=  $key . ':' . $value . ', ';
+      }
+      $input_params = substr($input_params, 0, strlen($input_params)-2);
+  
+      if($input_name!=""){
+        $this->query .= $name . "(" .  "input:{". $input_params . "})";
+      }
+      else{
+        $this->query .= $name . "(" .  $input_params . ")";
+      }
+     
+
+    }
+    return $this;
+  }
+ 
 
   public function build(){
 
-    $query = $this->renderQuery();
-
-    return $this->query;
+    $query = '';
+    
+    if ($this->queryType) {
+      $query .= $this->queryType == 'query' ? 'query { ': $this->queryType . '{ ' ;
+    }
+    
+    
+    if ($this->query) {
+      $query .=  $this->query .'{ ' . $this->field . '}';
+    }else {
+      $query .= $this->field;
+    }
+    if ($this->queryType) {
+        $query .= ' }';
+    }
+    return $query;
+  
   }
 
 
