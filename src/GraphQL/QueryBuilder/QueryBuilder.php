@@ -5,7 +5,8 @@ namespace Erenkucukersoftware\BrugsMigrationTool\GraphQL\QueryBuilder;
 use Erenkucukersoftware\BrugsMigrationTool\GraphQL\QueryBuilder\Nodes;
 use Erenkucukersoftware\BrugsMigrationTool\GraphQL\QueryBuilder\Operation\BulkOperation;
 use Erenkucukersoftware\BrugsMigrationTool\GraphQL\QueryBuilder\Operation\SingleOperation;
-
+use Erenkucukersoftware\BrugsMigrationTool\GraphQL\QueryBuilder\Operation\ProductUpdateMutation;
+use Erenkucukersoftware\BrugsMigrationTool\GraphQL\QueryBuilder\Operation\StagedUploadsMutation;
 
 const stagedUploadsCreateText = <<<EOT
             mutation {
@@ -53,7 +54,6 @@ class QueryBuilder
 
   public function __construct()
   {
-    self::$operation->nodes = new Nodes();
   }
 
 
@@ -70,12 +70,11 @@ class QueryBuilder
 
   public function mutation($mutation)
   {
+
     if ($mutation == self::STAGED_UPLOADS_CREATE) {
-      $this->mutation = stagedUploadsCreateText;
+      self::$operation->setMutation(new StagedUploadsMutation());
     } else if ($mutation == self::MUTATION_UPDATE) {
-      self::$operation->nodes = new ProductUpdateNodes();
-    } else {
-      self::$operation->nodes = new Nodes();
+      self::$operation->setMutation(new ProductUpdateMutation());
     }
 
     return $this;
