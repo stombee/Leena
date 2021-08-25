@@ -51,6 +51,8 @@ class QueryBuilder
   const MAIN_FIELDS = 'product';
   const SUB_FIELDS = '';
 
+  const WITH_CURSOR = "cursor";
+
 
   public function __construct()
   {
@@ -86,9 +88,12 @@ class QueryBuilder
     return $this;
   }
 
-  public function withCursor()
+  public function with($param)
   {
-    self::$operation->setCursor();
+    if ($param === self::WITH_CURSOR) {
+      self::$operation->setCursor();
+    }
+
     return $this;
   }
 
