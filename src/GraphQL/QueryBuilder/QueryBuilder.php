@@ -86,6 +86,11 @@ class QueryBuilder
     return $this;
   }
 
+  public function withCursor()
+  {
+    self::$operation->setCursor();
+    return $this;
+  }
 
   public function fields(array $fields)
   {
@@ -95,6 +100,11 @@ class QueryBuilder
   public function setFieldAttribute($field, $attributeName, $attributeValue)
   {
     self::$operation->addAttribute($field, $attributeName, $attributeValue);
+    return $this;
+  }
+  public function setReturnField($name, $fields)
+  {
+    self::$operation->setReturnField($name, $fields);
     return $this;
   }
 

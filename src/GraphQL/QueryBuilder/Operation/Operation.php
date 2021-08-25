@@ -11,16 +11,24 @@ class Operation
     public $nodes;
     public $queryType;
     public $mutation;
+    public $isCursored;
+
     public function __construct()
     {
         $this->nodes = new Nodes();
+        $this->nodes->isCursored = false;
     }
+
     public function render()
     {
         $query = "";
         $query .= $this->queryType . Brackets::curlies($this->nodes->render());
 
         return $query;
+    }
+    public function setCursor()
+    {
+        $this->nodes->isCursored = true;
     }
     public function setMutation($mutation)
     {
@@ -38,5 +46,9 @@ class Operation
     public function addAttribute($field, $attributeName, $attributeValue)
     {
         $this->nodes->addAttribute($field, $attributeName, $attributeValue);
+    }
+    public function setReturnField($name, $fields)
+    {
+        $this->nodes->setReturnField($name, $fields);
     }
 };
