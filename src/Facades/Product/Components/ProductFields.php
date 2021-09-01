@@ -232,13 +232,23 @@ class ProductFields{
 
   }
 
+  private function get_subtype($product)
+  {
+    return $product['subtype']['name'];
+  }
+  private function get_type($product)
+  {
+    return $product['type']['name'];
+  }
   
 
 
   //MAIN SHOPIFY ENTITY GETS
 
   private function get_title($product){
-    return $product['collection'] .' '. $product['subtype']['name'];
+    $title_collection = ($product['collection'] == 'Tigris' || $product['collection'] == 'Istanbul' || $product['collection'] == 'MARASH') ? $product['design'] . ' ' : '';
+    $title_washable = $product['washable'] ? 'Washable ' : '';
+    return $product['collection'] .' '.$title_collection.''.$title_washable.'' .$product['subtype']['name'];
   }
 
 
@@ -396,7 +406,7 @@ class ProductFields{
               $washableInfo = "<b>Machine washable:</b> Yes<br>";
               $d .= $washableInfo;
               $customDescription['description'][] = [
-                'title' => 'Machine washable',
+                'title' => 'Machine Washable',
                 'content' => 'Yes'
               ];
             } 
@@ -408,6 +418,7 @@ class ProductFields{
                 'content' => 'Yes'
               ];
             }
+            
           
         
       
@@ -637,6 +648,9 @@ class ProductFields{
     if($parent_data["real_collection"] == "One of a Kind"){
       $custom_categories_tags[] = 'Custom Category__One of a Kind';
     }
+    if ($parent_data["pile"] == "Plush Pile") {
+      $style_tags[] = 'Style__Shags';
+    }
     
 
     $tags = collect()->push($material_tags,$material_master_tags,$style_tags,$size_tags,$shape_tags,$price_tags,$category_tags,$color_tags,$color_master_tags, $custom_categories_tags)->flatten()->toArray();
@@ -659,6 +673,7 @@ class ProductFields{
     
     $custom_data = [
       'real_design' => $product['real_design'],
+      'group_id' => $product['group_id'],
       'this_design' => $product['design'],
       'product_id'  => $product_id,
       'category' => $this->category,
@@ -715,20 +730,62 @@ class ProductFields{
     $this->meta_keywords = $k;
     return $this;
   }
-
+  private function get_taxcode($product)
+  {
+    
+    $tax_code = $product['type']['tax_code'];
+    return $tax_code;
+  }
   
   private function get_variants($product){
     $variants  = $product['variants'];
+    $prod_type = $this->get_type($product);
+
     $variants_arr = [];
     foreach($variants as $variant){
-      $price = $variant['price']['price'] / 100;
+
+      $price = !isset($variant['price']['price']) ? null:$variant['price']['price'] / 100;
       $sku = $variant['sku'];
+      $skus_last = substr($sku, -1);
       $real_sku = $variant['real_sku'];
-      $options = [$variant['size'] .' '.$variant['shape']];
+      $suffix = '';
+      $explodedSize = explode(' ', trim($variant['size']));
+      $uniqueSizeDimensions = array_unique($explodedSize);
+
+      // check if there is only one unique dimention. Ex: 10 x 10 should be 10.
+      if (count($uniqueSizeDimensions) == 2) {
+        // if dimensions without x is only one, unset x.
+        $xPosition = array_search('x', $uniqueSizeDimensions);
+        if ($xPosition) {
+          unset($uniqueSizeDimensions[$xPosition]);
+        }
+      }
+
+      // if only one unique dimension use it, if not use size as it is.
+      $sizeDimensions = (count($uniqueSizeDimensions) == 1) ? $uniqueSizeDimensions : $explodedSize;
+
+      // add shape to variant size
+      $variant["size"] = implode(' ', $sizeDimensions);
+
+      // if shape is not in size, add shape too.
+      if ($variant["shape"] != "") {
+        if (!strpos($variant["size"], $variant["shape"])) {
+          $variant["size"] .= " " . $variant["shape"];
+        }
+      }
+
+      if($prod_type == 'Pillow Kit' || $prod_type == 'Pillows' || $prod_type == 'Pillow Cover'){
+        $suffix .= ($skus_last == 'P') ? ' with Polyester Insert':null;
+        $suffix .= ($skus_last == 'D') ? ' with Down Insert':null;
+        $suffix .= ($prod_type == 'Pillow Cover') ? ' Pillow Cover':null;
+      
+      }
+      $options = [$variant['size'].$suffix]  ;
       $taxable = true;
+      $taxCode = $this->get_taxcode($product);
       $requires_shipping = true;
       $barcode = (string) $variant['upc']['upc'];
-      $weight = number_format($variant['shippings']['weight_lbs'], 2);
+      $weight = (float) number_format($variant['shippings']['weight_lbs'], 2);
       $imageSrc= '';
       if(!empty($product['images'])){
         foreach ($product['images'] as $image) {
@@ -745,12 +802,14 @@ class ProductFields{
       'sku' => $sku,
       'options' => $options,
       'taxable' => $taxable,
+      'taxCode' => $taxCode,
       'requiresShipping' => $requires_shipping,
       'imageSrc' => $imageSrc,
       'barcode' => $barcode,
       'weight' => $weight,
-      'weightUnit' => 'POUNDS'
-  ];
+      'weightUnit' => 'POUNDS',
+      "inventoryItem" => ['tracked' => true]
+    ];
       
 
     }
@@ -760,7 +819,7 @@ class ProductFields{
 
 
   private function get_vendor(){
-    return 'Boutique Rugs';
+    return 'Hauteloom';
   }
 
 
@@ -789,47 +848,65 @@ class ProductFields{
       foreach($this->products as $product)
       {
 
-
-        /*
-        foreach($product['variants'] as $variant){
-          if(isset($variant['variant_graph_id'])){
-          $price = $variant['price']['price'];
-          $price = $price / 100;
-          $variant_id = $variant['variant_graph_id'];
-          $this->result['input']['id'] = $variant_id;
-          $this->result['input']['price'] = $price;
-          $this->results[] = $this->result;
+        $skip = false;
+        $variants = $this->get_variants($product);
+        $images = $this->get_images($product);
+        if (count($images) == 0) {
+          $skip = true;
+        }
+        foreach ($variants as $variant) {
+          if ($variant['price'] == 0 || $variant['price'] == '' || $variant['price'] == null) {
+            $skip = true;
           }
         }
-        */
+
+        
 
         //6729297035456
+
+        if (!$skip) {
 
         $tags = $this->get_tags($product);
 
 
-        //if(!empty($product['graphql_id'])){
+          //if(!empty($product['graphql_id'])){
 
+        if (in_array('title', $this->fields) || in_array('all', $this->fields)) {
+          $this->result['input']['title'] = $this->get_title($product);
+        }
 
-
-        if (in_array('descriptionHtml', $this->fields)) {
+        if (in_array('descriptionHtml', $this->fields) || in_array('all', $this->fields) ) {
           $this->result['input']['descriptionHtml'] = $this->get_body_html($product);
         }
 
     
 
-        if(in_array('metafields', $this->fields)){
+        if(in_array('metafields', $this->fields) || in_array('all', $this->fields)){
           $this->result['input']['metafields'] = $this->get_metafields($product);
         }
 
 
         $this->result['input']['id'] = $product['graphql_id'];
-        if (in_array('tags', $this->fields)) {
+        if (in_array('tags', $this->fields) || in_array('all', $this->fields)) {
           $this->result['input']['tags'] = $this->get_tags($product);
-          Log::debug($this->result['input']['tags']);
+        }
+
+
+        if (in_array('variants', $this->fields)|| in_array('all', $this->fields)) {
+        $this->result['input']['variants'] = $this->get_variants($product);
+        }
+
+        // need to update shopifydata tables image id
+         if (in_array('images', $this->fields) || in_array('all', $this->fields)) {
+           $this->result['input']['images'] = $this->get_images($product);
+         }
+
+        $this->result['input']['productType'] = $this->get_type($product);
+        $this->result['input']['vendor'] = $this->get_vendor($product);
+
+        $this->results[] = $this->result;
         }
         
-        $this->results[] = $this->result;
       }
       
     }
@@ -837,14 +914,47 @@ class ProductFields{
 
     //OPERATION CREATE
     if(BrugsMigrationTool::$settings['OPERATION'] == 'CREATE'){
+
       foreach($this->products as $product){
-        $this->result['input']['title'] = $this->get_title($product);
-        $this->result['input']['vendor'] = $this->get_vendor();
-        $this->result['input']['variants'] = $this->get_variants($product);
-        $this->result['input']['metafields'] = $this->get_metafields($product);
-        $this->result['input']['tags'] = $this->get_tags($product);
-        $this->result['input']['images'] = $this->get_images($product);
-        $this->results[] = $this->result;
+        
+        $skip = false;
+        $variants = $this->get_variants($product);
+        $images = $this->get_images($product);
+        if(count($images) == 0){
+          $skip = true;
+        }
+        foreach($variants as $variant){
+          if($variant['price'] == 0 || $variant['price'] == '' || $variant['price'] == null){
+            $skip = true;
+          }  
+
+        }
+        
+        
+      if(!$skip){
+
+          $this->result['input']['title'] = $this->get_title($product);
+          $this->result['input']['vendor'] = $this->get_vendor();
+          $this->result['input']['variants'] = $this->get_variants($product);
+          $this->result['input']['metafields'] = $this->get_metafields($product);
+          $this->result['input']['tags'] = $this->get_tags($product);
+          $this->result['input']['images'] = $this->get_images($product);
+          $this->result['input']['descriptionHtml'] = $this->get_body_html($product);
+
+          $this->result['input']['status'] = 'ACTIVE';
+          $this->result['input']['published'] = true;
+          $this->result['input']['productType'] = $this->get_type($product);
+          $this->result['input']['vendor'] = $this->get_vendor($product);
+
+
+          $this->results[] = $this->result;
+         
+
+      }
+          
+
+        
+        
 
       }
     }

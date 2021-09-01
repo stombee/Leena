@@ -5,6 +5,8 @@ namespace Erenkucukersoftware\BrugsMigrationTool\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+
+
 class ShopifyProductVariantPrice extends Model
 {
     use HasFactory;
@@ -17,5 +19,5 @@ class ShopifyProductVariantPrice extends Model
     {
         return $this->belongsTo(ShopifyProductVariant::class);
     }
-    
+
 }

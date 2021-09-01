@@ -7,7 +7,6 @@ use Erenkucukersoftware\BrugsMigrationTool\Controllers\BrugsMigrationToolControl
 
 use Illuminate\Support\Facades\Route;
 
-//Route::get('hello', 'Finetick\Calculator\CalculatorController@add');
 
 
 

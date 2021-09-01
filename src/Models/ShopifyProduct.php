@@ -4,7 +4,7 @@ namespace Erenkucukersoftware\BrugsMigrationTool\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Erenkucukersoftware\BrugsMigrationTool\Models\Scopes\ShopifyProductScope;
 use Erenkucukersoftware\BrugsMigrationTool\Models\ShopifyProductCustomCategory;
 
 class ShopifyProduct extends Model
@@ -48,4 +48,12 @@ class ShopifyProduct extends Model
   {
     return $this->hasOne(ShopifyProductShopifyDataDev::class, 'real_design', 'real_design')->withDefault();
   }
+
+  
+
+  protected static function booted()
+  {
+    static::addGlobalScope(new ShopifyProductScope);
+  }
+
 }

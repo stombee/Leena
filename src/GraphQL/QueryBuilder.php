@@ -12,12 +12,12 @@ class QueryBuilder{
   public $filename;
   public static $operation;
   public $mutation;
-  public $queryType;
+  public static $queryType;
   public $response;
   public $fields;
   public $attributes;
   public $cursor = false;
-  
+  public $func_attributes;
 
   const OPERATION_BULK = 'bulk';
   const OPERATION_CREATE = 'single';
@@ -38,7 +38,7 @@ class QueryBuilder{
 
   }
 
-
+  
   public static function operation($operation){
     self::$operation = $operation ;
     return new self;
@@ -64,10 +64,15 @@ class QueryBuilder{
     $this->attributes[$field][] = [$attributeName=>$attributeValue];
     return $this;
   }
-
-  public function queryType($queryType){
-    $this->queryType = $queryType;
+  public function setFuncAttribute($func, $attributeName, $attributeValue)
+  {
+    $this->func_attributes[$func][] = [$attributeName => $attributeValue];
     return $this;
+  }
+
+  public static function queryType($queryType){
+    self::$queryType = $queryType;
+    return new self;
   }
 
   public function renderFields(){
@@ -90,30 +95,29 @@ class QueryBuilder{
     
     $attributes = '';
     foreach($attributes_arr as $name => $value){
-      dd($name,$value);
+      
       $attributes .= $name.':'.$value;
     }
-    dd($attributes);
+    
     return $attributes;
   }
-
-
 
   
 
   public function renderQuery(){
     $query = '';
     $query .= $this->queryType == 'mutation' ? 'mutation {':'{' ;
-    $query .= 
+    $query .=  
     
 
     $query .= '}';
-    dd($query);
+    
   }
 
 
 
   public function build(){
+
 
     $query = $this->renderQuery();
 

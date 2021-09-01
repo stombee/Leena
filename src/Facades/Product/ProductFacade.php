@@ -23,9 +23,7 @@ class ProductFacade{
         
     }
 
-    public function getFields(){
-      dd(BrugsMigrationTool::$settings['API_MODE']);
-    }
+
 
     public function run(){
       return $this->product_fields->run();

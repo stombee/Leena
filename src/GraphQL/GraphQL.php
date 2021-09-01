@@ -16,13 +16,14 @@ class GraphQL{
       ->fields(['products.id','products.title', 'variants.title', 'images.src'])
       ->setFieldAttribute('products','first','250')
       ->setFieldAttribute('products','query','blabla')
+      ->setFieldAttribute('bulkOperationRunMutation', 'stagedUploadPath','filepath')
       ->build();
       return $query;
   }
 
   public function stagedUploadCreate(){
     $query =
-      QueryBuilder::operation('bulk')
+      QueryBuilder::operation('single')
       ->queryType('mutation')
       ->mutation('stagedUploadsCreate')
       ->fields(['id','url'])

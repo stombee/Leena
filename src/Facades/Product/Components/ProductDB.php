@@ -828,6 +828,7 @@ class ProductDB{
     $images = DB::connection('mysql2')->select('SELECT * FROM br_images INNER JOIN br_image_variations on  br_images.id = br_image_id WHERE br_image_variations.image_type = \'large\' ');
 
     $images_arr = [];
+    
     foreach($images as $image){
       $images_arr[$image->real_design][] = $image;
     }
@@ -836,8 +837,8 @@ class ProductDB{
     return $images_arr;
   }
 
-  public function getColorVariants(){
-
+  public function getColorVariants()
+  {
     $color_variant_count = DB::connection('mysql2')->select('SELECT count(*) as color_variant_count  FROM shopify_data AS bd, br_products AS mp WHERE bd.real_design = mp.real_design AND (bd.parent_id IS NOT NULL AND bd.parent_id != \'\')  ')[0]->color_variant_count;
     $maxAtOneTime = 2000;
     $color_variant_pages = ceil($color_variant_count / $maxAtOneTime);
@@ -873,6 +874,18 @@ class ProductDB{
 
   }
 
+  public function sortImages($images_arr)
+  {
+    
+    foreach($images_arr as &$images){
+      usort($images, 'ImageSort');
+
+      
+      
+    }
+    
+    return $images_arr;
+  }
 
   public function getShopifyData(){
     return DB::connection('mysql2')->select('SELECT * FROM'.' '.$this->shopify_data);
@@ -894,7 +907,7 @@ class ProductDB{
         $products_arr_diff[] = $product;
       }
     }
-
+    
     return $products_arr_diff;
   }
 
@@ -906,6 +919,7 @@ class ProductDB{
     }
 
     $images = $this->getImages();
+    $images = $this->sortImages($images);
     
     
     $color_variants_arr = $this->getColorVariants();
@@ -913,8 +927,8 @@ class ProductDB{
     
     $products = collect();
 
-    $total_count = 1500; //ShopifyProduct::where('display', '=', 1)->count();
-    $maxAtOneTime = 1500;
+    $total_count = ShopifyProduct::where('display', '=', 1)->count();
+    $maxAtOneTime = 3000;
     $pages = ceil($total_count / $maxAtOneTime);
 
     for ($i = 1; $i < ($pages + 1); $i++) {
@@ -922,7 +936,19 @@ class ProductDB{
       $offset = (($i - 1) * $maxAtOneTime);
       $start = ($offset == 0 ? 0 : ($offset + 1));
 
-      $data = ShopifyProduct::with(['variants.shippings', 'variants.price','variants.upc', 'customCategory.custom_category_name', 'colors.color_name', 'type', 'subtype', $this->shopify_data])->withCount('variants')->where('display', '=', 1)->offset($start)->limit($maxAtOneTime)->get()->toArray();
+      $data = ShopifyProduct::with(['variants.shippings', 'variants.price','variants.upc', 'customCategory.custom_category_name', 'colors.color_name', 'type', 'subtype', $this->shopify_data])->withCount('variants')->offset($start)->limit($maxAtOneTime);
+      
+      if (!empty(BrugsMigrationTool::$settings['ENTITY']) && BrugsMigrationTool::$settings['ENTITY'][0] != 'all') 
+      {
+        foreach(BrugsMigrationTool::$settings['ENTITY'] as $index => $entity)
+        {
+          $index == 0 ? $data = $data->where('real_design', '=', $entity): $data = $data->orWhere('real_design', '=', $entity) ;
+        }
+        
+      }
+
+      $data = $data->get()->toArray();
+      
 
       $data = collect($data)->map(function ($data) use ($color_variants_arr,$images) {
 
@@ -959,11 +985,15 @@ class ProductDB{
     }
 
 
+
+    
+
+    $products = $this->addMissingFields($products);
     if(BrugsMigrationTool::$settings['OPERATION'] == 'CREATE' ){
 
 
       $shopify_data = $this->getShopifyData();
-      $products = $products = $products->toArray();
+      
       $new_products = $this->productsDiff($products,$shopify_data);
       
       return $new_products;
@@ -974,7 +1004,7 @@ class ProductDB{
 
 
 
-    $products = $this->addMissingFields($products);
+
 
     Log::debug('Raw DB Product Ready');
     return $products;
@@ -984,7 +1014,7 @@ class ProductDB{
     $products = $products->toArray();
 
     foreach ($products as $index => $product) {
-
+      
       if (isset($product['variants']) && isset($product[$this->shopify_data]['variants_data'])) {
         foreach ($product['variants'] as $indexvar => $variant) {
           $variant_json = json_decode($product[$this->shopify_data]['variants_data'], true);
@@ -1006,6 +1036,7 @@ class ProductDB{
         }
       }
     }
+    
     return $products;
 
   }

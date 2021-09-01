@@ -1,6 +1,6 @@
 <?php
 
-namespace Erenkucukersoftware\BrugsMigrationTool\Facades\GraphQL;
+namespace Erenkucukersoftware\BrugsMigrationTool\Facades\Shopify\Components;
 
 use GuzzleHttp\Client;
 use Erenkucukersoftware\BrugsMigrationTool\Constants;
@@ -10,7 +10,7 @@ class QueryBuilder{
 
   public $query;
   public $updateable_fields;
-  
+  public $prefer;
   
 
   public function __construct(){
@@ -18,26 +18,18 @@ class QueryBuilder{
     
 
   }
+  
+  public function prefer($prefer)
+  {
+    $this->query['prefer'] = $prefer;
+    return $this;
+  }
 
 
-
-  public function generateGraphQLQuery($stagedUploadPath,$fields){
-    
-
-    $fields_for_query = '';
-    if (in_array('all', $fields)) {
-      foreach($this->updateable_fields as $updateable){
-        $fields_for_query .= $updateable . ' ';
-      }
-    }
-    
-    foreach($fields as $field){
-      $fields_for_query .= $field.' ';
-    }
-    
+  public function productUpdateQuery($stagedUploadPath){
     $query = 'mutation {
   bulkOperationRunMutation(
-    mutation: "mutation call($input: ProductInput!) { productUpdate(input: $input) { product {'.$fields_for_query.'} userErrors { message field } } }",
+    mutation: "mutation call($input: ProductInput!) { productUpdate(input: $input) { product { id } userErrors { message field } } }",
     stagedUploadPath: "'.$stagedUploadPath.'") {
     bulkOperation {
     
@@ -52,14 +44,38 @@ class QueryBuilder{
   }
 }';
 
-  $this->query = $query;
-  return $this;
+  
+  return $query;
+
+  }
+
+  public function productCreateQuery($stagedUploadPath)
+  {
+    $query = 'mutation {
+  bulkOperationRunMutation(
+    mutation: "mutation call($input: ProductInput!) { productCreate(input: $input) { product { id } userErrors { message field } } }",
+    stagedUploadPath: "' . $stagedUploadPath . '") {
+    bulkOperation {
+    
+      id
+      url
+      status
+    }
+    userErrors {
+      message
+      field
+    }
+  }
+}';
+
+
+    return $query;
+
 
   }
 
   public function generateStageUploadQuery($filename){
-    $filename = explode('.', $filename);
-    $filename = $filename[0];
+
 
     $query = 'mutation {
       stagedUploadsCreate(input:{
@@ -83,15 +99,15 @@ class QueryBuilder{
       }
     }';
 
-    $this->query = $query;
-    return $this;
+    
+    return $query;
   }
 
   public function generateBulkOperationStatusQuery(){
 
   }
 
-  public function generateBulkOperationStatusCheckQuery($bulkOperationID){
+  public function bulkOperationStatusCheckQuery($bulkOperationID){
     $query = '{
   node(id: "'.$bulkOperationID.'") {
     ... on BulkOperation {
@@ -107,11 +123,13 @@ class QueryBuilder{
     }
   }
 }';
-  $this->query = $query;
-  return $this;
+   
+  return $query;
   }
 
   public function generateGetProductsQuery($cursor){
+
+
       $query = '
       {
   products(first: 250'.($cursor ? ',after:'.$cursor:null).') {
@@ -126,9 +144,9 @@ class QueryBuilder{
   }
 }
       ';
-    $this->query = $query;
+ 
     
-    return $this->query;
+    return $query;
   }
 
   public function generateGetProductQuery($time){
@@ -172,6 +190,19 @@ class QueryBuilder{
     
 
   }
+  public function generateLatestProcessedProducts($timestamp,$after)
+  {
+      $after = $after ? '&since_id='.$after:'';
+      $query = 'products.json?created_at_min='.$timestamp.'&limit=250'.$after;
+      return $query;
+  }
+
+  public function generateGetMetafields($id)
+  {
+    $query = 'products/'.$id.'/metafields.json';
+    return $query;
+  }
+
 
 
   

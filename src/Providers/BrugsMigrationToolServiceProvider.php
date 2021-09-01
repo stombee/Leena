@@ -38,5 +38,6 @@ class BrugsMigrationToolServiceProvider extends ServiceProvider
     public function boot()
     {
         include dirname(__DIR__) . '/Routes/routes.php';
+        include dirname(__DIR__) . '/helpers.php';
     }
 }

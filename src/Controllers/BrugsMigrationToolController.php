@@ -28,23 +28,27 @@ class BrugsMigrationToolController extends BaseController
   public function createProducts(Request $request){
     $fields = $request->fields;
     $entity_type = $request->entity_type;
-    $tool = new BrugsMigrationTool('all',$fields,$entity_type,'CREATE',true);
+    $tool = new BrugsMigrationTool('all',$fields,$entity_type,'CREATE');
     $response = $tool->run()->getResponse();
     return $response;
   }
 
 
-/*
+
   public function updateProducts(Request $request)
   {
+    
     $products = $request->update;
     $fields = $request->fields;
     $entity_type = $request->entity_type;
-    $tool = new BrugsMigrationTool($products, $fields, $entity_type);
-    $response = $tool->run()->response();
+    $entity = $request->entity;
+    $tool = new BrugsMigrationTool($entity, $fields, $entity_type, 'UPDATE');
+    $response = $tool->run()->getResponse();
     return $response;
   }
 
+
+  /*
   public function checkUpdateStatus(Request $request)
   {
     $status = $request->status;
