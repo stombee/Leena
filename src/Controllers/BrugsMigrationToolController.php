@@ -2,19 +2,11 @@
 
 namespace Erenkucukersoftware\BrugsMigrationTool\Controllers;
 
-use App\Http\Controllers\API\v1\common\constants\Constants;
 use App\Http\Controllers\API\v1\ws\BaseController;
-
-
 use App\Traits\RespondsWithHttpStatus;
 use Illuminate\Http\Request;
-use Spatie\QueryBuilder\QueryBuilder;
-use App\Models\Image;
-use PHPShopify\ShopifySDK;
-use Illuminate\Support\Facades\Http;
-use GuzzleHttp\Client;
-
 use Erenkucukersoftware\BrugsMigrationTool\BrugsMigrationTool;
+use Erenkucukersoftware\BrugsMigrationTool\Enums\{Operations};
 
 ini_set('max_execution_time', 0);
 
@@ -25,25 +17,34 @@ class BrugsMigrationToolController extends BaseController
   use RespondsWithHttpStatus;
 
 
-  public function createProducts(Request $request){
+  public function createProducts(Request $request)
+  {
     $fields = $request->fields;
-    $entity_type = $request->entity_type;
-    $tool = new BrugsMigrationTool('all',$fields,$entity_type,'CREATE');
-    $response = $tool->run()->getResponse();
+    $custom_group = $request->custom_group;
+    $entity = $request->entity;
+    $response =  
+    (new BrugsMigrationTool())
+    ->operation(Operations::Create())
+    ->entity($entity)
+    ->fields($fields)
+    ->custom_group($custom_group)
+    ->run();
     return $response;
   }
 
-
-
   public function updateProducts(Request $request)
   {
-    
     $products = $request->update;
     $fields = $request->fields;
-    $entity_type = $request->entity_type;
     $entity = $request->entity;
-    $tool = new BrugsMigrationTool($entity, $fields, $entity_type, 'UPDATE');
-    $response = $tool->run()->getResponse();
+    $custom_group = $request->custom_group;
+    $response = 
+    (new BrugsMigrationTool())
+    ->operation(Operations::Update())
+    ->entity($entity)
+    ->fields($fields)
+    ->custom_group($custom_group)
+    ->run();
     return $response;
   }
 

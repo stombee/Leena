@@ -5,8 +5,8 @@ namespace Erenkucukersoftware\BrugsMigrationTool\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-use Erenkucukersoftware\BrugsMigrationTool\Models\ShopifyProduct;
-use Erenkucukersoftware\BrugsMigrationTool\Models\ShopifyProductUpc;
+use Erenkucukersoftware\BrugsMigrationTool\Models\{ShopifyProduct, ShopifyProductUpc, ShopifyProductVariantInventories};
+
 
 
 class ShopifyProductVariant extends Model
@@ -38,7 +38,11 @@ class ShopifyProductVariant extends Model
     }
 
     public function upc(){
-        return $this->hasOne(ShopifyProductUpc::class, 'real_sku', 'real_sku');
+        return $this->hasMany(ShopifyProductUpc::class, 'real_sku', 'real_sku');
+    }
+    public function inventory()
+    {
+        return $this->hasOne(ShopifyProductVariantInventories::class, 'real_sku', 'real_sku');
     }
 
 

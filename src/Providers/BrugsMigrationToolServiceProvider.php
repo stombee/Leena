@@ -3,7 +3,7 @@
 namespace Erenkucukersoftware\BrugsMigrationTool\Providers;
 
 use Illuminate\Support\ServiceProvider;
-
+use Erenkucukersoftware\BrugsMigrationTool\Providers\BrugsMigrationToolEventServiceProvider;
 
 
 class BrugsMigrationToolServiceProvider extends ServiceProvider
@@ -28,6 +28,8 @@ class BrugsMigrationToolServiceProvider extends ServiceProvider
         $this->app->make('Erenkucukersoftware\BrugsMigrationTool\Models\ShopifyProductVariant');
         $this->app->make('Erenkucukersoftware\BrugsMigrationTool\Models\ShopifyProductVariantPrice');
         $this->app->make('Erenkucukersoftware\BrugsMigrationTool\Models\ShopifyProductVariantShipping');
+        $this->mergeConfigFrom(__DIR__ . '/../config/logging.php', 'logging.channels');
+        $this->app->register(BrugsMigrationToolEventServiceProvider::class);
     }
 
     /**

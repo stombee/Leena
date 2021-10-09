@@ -2,65 +2,85 @@
 
 namespace Erenkucukersoftware\BrugsMigrationTool\Facades\Shopify;
 
-
+use Erenkucukersoftware\BrugsMigrationTool\Enums\{Fields, Operations, ToolStatus, CustomGroups, ApiMode};
+use Erenkucukersoftware\BrugsMigrationTool\Events\{ProductsCreated, ProductsUpdated};
 use Erenkucukersoftware\BrugsMigrationTool\Facades\Shopify\Components\{Shopify};
-use Carbon\Carbon;
-use Erenkucukersoftware\BrugsMigrationTool\GraphQL\QueryBuilder;
 use Erenkucukersoftware\BrugsMigrationTool\BrugsMigrationTool;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 use Storage;
 
-class ShopifyFlowFacade {
 
+class ShopifyFlowFacade 
+{
   public  $shopify;
-  public  $queryBuilder;
-
-  public function __construct() {
+  public $graphQL;
+  public function __construct() 
+  {
     $this->shopify = new Shopify();
-    $this->queryBuilder = new QueryBuilder();
+    //$this->graphQL = new GraphQL();
 
   }
-  public function __destruct() {
+  public function __destruct() 
+  {
     Storage::delete('/process/'.Shopify::$default_storage_path.'/*.jsonl');
   }
 
 
 
-  public function run ($products){
-
-    if(count($products) < 1){
+  public function run ($products)
+  {
+    
+    if($products && count($products) < 1)
+    {
       return 'Product count less than 1';
     }
     
     $files = $this->shopify->createJsonLineFile($products);
-    
     $results = [];
-    foreach( $files as $file ){
+    foreach( $files as $file )
+    {
       $staged_upload_path = $this->shopify->uploadShopifyStagedFiles($file);
         Log::debug(['file',$file]);
         Log::debug(['staged_path',$staged_upload_path]);
-      if(BrugsMigrationTool::$settings['OPERATION'] == 'UPDATE')
+      if(BrugsMigrationTool::$settings['OPERATION']->is(Operations::Update))
       {
         $bulk_operation_id = $this->shopify->updateProducts($staged_upload_path);
-        Log::debug(['bulk_op',$bulk_operation_id]);
+        Log::channel('update_logs')->debug(['bulk_op',$bulk_operation_id]);
+        
+        
         $file_content = $this->shopify->getBulkActionResult($bulk_operation_id);
-        Log::debug(['file content',$file_content]);
+        Log::channel('update_logs')->debug(['file content',$file_content]);
+        $results[] = $file_content;
+         
+      }
+
+      if (BrugsMigrationTool::$settings['OPERATION']->is(Operations::Create)) 
+      {
+        $bulk_operation_id = $this->shopify->createProducts($staged_upload_path);
+        Log::channel('create_logs')->debug(['bulk_op', $bulk_operation_id]);
+
+        
+        
+
+        $file_content = $this->shopify->getBulkActionResult($bulk_operation_id);
+        Log::channel('create_logs')->debug(['file content', $file_content]);
         $results[] = $file_content;
         
       }
 
-      if (BrugsMigrationTool::$settings['OPERATION'] == 'CREATE') {
-        $bulk_operation_id = $this->shopify->createProducts($staged_upload_path);
-        Log::debug(['bulk_op', $bulk_operation_id]);
-        $file_content = $this->shopify->getBulkActionResult($bulk_operation_id);
-        Log::debug(['file content', $file_content]);
-        $results[] = $file_content;
-        
-      }
 
       
     }
-
+    /*
+    if(BrugsMigrationTool::$settings['OPERATION'] == 'UPDATE')
+    {
+      ProductsUpdated::dispatch($timestamp);  //dispatch event
+    }
+    if (BrugsMigrationTool::$settings['OPERATION'] == 'CREATE') {
+      ProductsCreated::dispatch($timestamp);
+    }
+    */
     
 
     
@@ -70,45 +90,5 @@ class ShopifyFlowFacade {
 
     
   }
-  
-  public function getStagedUploadPath($file){
-
-  }
-  
-  
-  /*
-  public  function getAllProducts()
-  {
-    $query_builder = $this->queryBuilder;
-
-    $response = 1;
-    $count = 1;
-    $cursor = false;
-    while($count != 82){
-      $query = $query_builder->generateGetProductsQuery($cursor);
-      $shopify = $this->shopify;
-      $response = $shopify->run($query);
-      
-      $cursor = isset($response->data) ? $response->data->products->edges[249]->cursor:false;
-      
-      if($count > 76){
-        dump($response,$query);
-      }
-      $count++;
-      sleep(2);
-    }
-    dd('f');
-    return $response;
-  }
-*/
-
-  public function getProducts($time){
-    //$query_builder = $this->queryBuilder;
-    //$query = $query_builder->generateGetProductQuery($time);
-    //$shopify = $this->shopify;
-    //$response = $shopify->run($query);
-    //return $response;
-  }
-
   
 }

@@ -3,16 +3,280 @@
 namespace Erenkucukersoftware\BrugsMigrationTool\Facades\Product\Components;
 
 
-
+use Erenkucukersoftware\BrugsMigrationTool\Enums\{Fields, Operations, ToolStatus, CustomGroups, ApiMode};
 use Illuminate\Support\Facades\Log;
-use Erenkucukersoftware\BrugsMigrationTool\BrugsMigrationTool;
-use Erenkucukersoftware\BrugsMigrationTool\Constants;
+use Erenkucukersoftware\BrugsMigrationTool\{BrugsMigrationTool, Constants};
 use Erenkucukersoftware\BrugsMigrationTool\Facades\Shopify\ShopifyFlowFacade;
 
+
+
 ini_set('max_execution_time', 0);
+ini_set('memory_limit', '5G');
 
 
-class ProductFields{
+class ProductFields
+{
+  public $prods_arr = [
+    "gid://shopify/Product/6610192826560",
+    "gid://shopify/Product/6728360493248",
+    "gid://shopify/Product/6728360526016",
+    "gid://shopify/Product/6728377041088",
+    "gid://shopify/Product/6728378974400",
+    "gid://shopify/Product/6728379728064",
+    "gid://shopify/Product/6728403321024",
+    "gid://shopify/Product/6728414134464",
+    "gid://shopify/Product/6728431337664",
+    "gid://shopify/Product/6728433270976",
+    "gid://shopify/Product/6728434254016",
+    "gid://shopify/Product/6728438874304",
+    "gid://shopify/Product/6728438907072",
+    "gid://shopify/Product/6728438972608",
+    "gid://shopify/Product/6728439005376",
+    "gid://shopify/Product/6728439038144",
+    "gid://shopify/Product/6728439070912",
+    "gid://shopify/Product/6728439103680",
+    "gid://shopify/Product/6728439136448",
+    "gid://shopify/Product/6728439201984",
+    "gid://shopify/Product/6728439234752",
+    "gid://shopify/Product/6728439267520",
+    "gid://shopify/Product/6728439300288",
+    "gid://shopify/Product/6728439333056",
+    "gid://shopify/Product/6728439365824",
+    "gid://shopify/Product/6728439431360",
+    "gid://shopify/Product/6728449097920",
+    "gid://shopify/Product/6728491106496",
+    "gid://shopify/Product/6728494088384",
+    "gid://shopify/Product/6728569553088",
+    "gid://shopify/Product/6728569618624",
+    "gid://shopify/Product/6728569684160",
+    "gid://shopify/Product/6728570208448",
+    "gid://shopify/Product/6728570437824",
+    "gid://shopify/Product/6728570667200",
+    "gid://shopify/Product/6728570732736",
+    "gid://shopify/Product/6728571257024",
+    "gid://shopify/Product/6728571355328",
+    "gid://shopify/Product/6728571420864",
+    "gid://shopify/Product/6728571683008",
+    "gid://shopify/Product/6728571748544",
+    "gid://shopify/Product/6728571977920",
+    "gid://shopify/Product/6728572371136",
+    "gid://shopify/Product/6728572469440",
+    "gid://shopify/Product/6728572502208",
+    "gid://shopify/Product/6728572829888",
+    "gid://shopify/Product/6728572895424",
+    "gid://shopify/Product/6728573124800",
+    "gid://shopify/Product/6728573223104",
+    "gid://shopify/Product/6728573288640",
+    "gid://shopify/Product/6728573714624",
+    "gid://shopify/Product/6728573747392",
+    "gid://shopify/Product/6728573845696",
+    "gid://shopify/Product/6728574075072",
+    "gid://shopify/Product/6728574697664",
+    "gid://shopify/Product/6728574959808",
+    "gid://shopify/Product/6728575189184",
+    "gid://shopify/Product/6728575320256",
+    "gid://shopify/Product/6728575484096",
+    "gid://shopify/Product/6728575811776",
+    "gid://shopify/Product/6728575844544",
+    "gid://shopify/Product/6728576237760",
+    "gid://shopify/Product/6728577089728",
+    "gid://shopify/Product/6728577384640",
+    "gid://shopify/Product/6728577810624",
+    "gid://shopify/Product/6728577908928",
+    "gid://shopify/Product/6728578138304",
+    "gid://shopify/Product/6728579907776",
+    "gid://shopify/Product/6728580235456",
+    "gid://shopify/Product/6728580300992",
+    "gid://shopify/Product/6728589082816",
+    "gid://shopify/Product/6728590721216",
+    "gid://shopify/Product/6728591802560",
+    "gid://shopify/Product/6728592490688",
+    "gid://shopify/Product/6728592654528",
+    "gid://shopify/Product/6728593244352",
+    "gid://shopify/Product/6728593342656",
+    "gid://shopify/Product/6728605237440",
+    "gid://shopify/Product/6728610447552",
+    "gid://shopify/Product/6728611168448",
+    "gid://shopify/Product/6728615395520",
+    "gid://shopify/Product/6728616214720",
+    "gid://shopify/Product/6728617066688",
+    "gid://shopify/Product/6728617164992",
+    "gid://shopify/Product/6728617951424",
+    "gid://shopify/Product/6728618639552",
+    "gid://shopify/Product/6728618967232",
+    "gid://shopify/Product/6728619393216",
+    "gid://shopify/Product/6728619819200",
+    "gid://shopify/Product/6728620048576",
+    "gid://shopify/Product/6728620245184",
+    "gid://shopify/Product/6728620900544",
+    "gid://shopify/Product/6728621195456",
+    "gid://shopify/Product/6728621818048",
+    "gid://shopify/Product/6728623456448",
+    "gid://shopify/Product/6728623751360",
+    "gid://shopify/Product/6728625586368",
+    "gid://shopify/Product/6728629616832",
+    "gid://shopify/Product/6728631550144",
+    "gid://shopify/Product/6728631713984",
+    "gid://shopify/Product/6728632467648",
+    "gid://shopify/Product/6728633319616",
+    "gid://shopify/Product/6728633516224",
+    "gid://shopify/Product/6728634695872",
+    "gid://shopify/Product/6728634892480",
+    "gid://shopify/Product/6728635318464",
+    "gid://shopify/Product/6728635384000",
+    "gid://shopify/Product/6728636039360",
+    "gid://shopify/Product/6728636661952",
+    "gid://shopify/Product/6728637382848",
+    "gid://shopify/Product/6728637939904",
+    "gid://shopify/Product/6728639054016",
+    "gid://shopify/Product/6728640692416",
+    "gid://shopify/Product/6728641249472",
+    "gid://shopify/Product/6728643150016",
+    "gid://shopify/Product/6728645869760",
+    "gid://shopify/Product/6728645935296",
+    "gid://shopify/Product/6728646623424",
+    "gid://shopify/Product/6728646918336",
+    "gid://shopify/Product/6728647999680",
+    "gid://shopify/Product/6728648655040",
+    "gid://shopify/Product/6728650260672",
+    "gid://shopify/Product/6728653766848",
+    "gid://shopify/Product/6728654618816",
+    "gid://shopify/Product/6728654880960",
+    "gid://shopify/Product/6728655601856",
+    "gid://shopify/Product/6728656289984",
+    "gid://shopify/Product/6728656715968",
+    "gid://shopify/Product/6728657633472",
+    "gid://shopify/Product/6728658911424",
+    "gid://shopify/Product/6728661401792",
+    "gid://shopify/Product/6728662876352",
+    "gid://shopify/Product/6728663171264",
+    "gid://shopify/Product/6728664350912",
+    "gid://shopify/Product/6728665399488",
+    "gid://shopify/Product/6728666218688",
+    "gid://shopify/Product/6728666808512",
+    "gid://shopify/Product/6728668086464",
+    "gid://shopify/Product/6728668414144",
+    "gid://shopify/Product/6728668577984",
+    "gid://shopify/Product/6728668774592",
+    "gid://shopify/Product/6728668872896",
+    "gid://shopify/Product/6728693186752",
+    "gid://shopify/Product/6728694202560",
+    "gid://shopify/Product/6728694431936",
+    "gid://shopify/Product/6728695939264",
+    "gid://shopify/Product/6728697839808",
+    "gid://shopify/Product/6728698396864",
+    "gid://shopify/Product/6728767439040",
+    "gid://shopify/Product/6728773206208",
+    "gid://shopify/Product/6728773370048",
+    "gid://shopify/Product/6728773533888",
+    "gid://shopify/Product/6728773697728",
+    "gid://shopify/Product/6728776188096",
+    "gid://shopify/Product/6728777105600",
+    "gid://shopify/Product/6728783724736",
+    "gid://shopify/Product/6728783823040",
+    "gid://shopify/Product/6728784314560",
+    "gid://shopify/Product/6728784478400",
+    "gid://shopify/Product/6728784642240",
+    "gid://shopify/Product/6728784806080",
+    "gid://shopify/Product/6728784838848",
+    "gid://shopify/Product/6728784969920",
+    "gid://shopify/Product/6728785166528",
+    "gid://shopify/Product/6728785264832",
+    "gid://shopify/Product/6728785658048",
+    "gid://shopify/Product/6728785821888",
+    "gid://shopify/Product/6728789328064",
+    "gid://shopify/Product/6728790147264",
+    "gid://shopify/Product/6728794374336",
+    "gid://shopify/Product/6728797192384",
+    "gid://shopify/Product/6728800600256",
+    "gid://shopify/Product/6728802369728",
+    "gid://shopify/Product/6728804303040",
+    "gid://shopify/Product/6728805875904",
+    "gid://shopify/Product/6728808890560",
+    "gid://shopify/Product/6728809840832",
+    "gid://shopify/Product/6728818458816",
+    "gid://shopify/Product/6728818753728",
+    "gid://shopify/Product/6728823341248",
+    "gid://shopify/Product/6728825929920",
+    "gid://shopify/Product/6728827568320",
+    "gid://shopify/Product/6728827699392",
+    "gid://shopify/Product/6728830517440",
+    "gid://shopify/Product/6728899395776",
+    "gid://shopify/Product/6728958935232",
+    "gid://shopify/Product/6729087254720",
+    "gid://shopify/Product/6729165537472",
+    "gid://shopify/Product/6729342288064",
+    "gid://shopify/Product/6729399697600",
+    "gid://shopify/Product/6795721277632",
+    "gid://shopify/Product/6795721769152",
+    "gid://shopify/Product/6795722326208",
+    "gid://shopify/Product/6795722653888",
+    "gid://shopify/Product/6795723145408",
+    "gid://shopify/Product/6795723505856",
+    "gid://shopify/Product/6795723800768",
+    "gid://shopify/Product/6795724423360",
+    "gid://shopify/Product/6795724587200",
+    "gid://shopify/Product/6795726553280",
+    "gid://shopify/Product/6795730092224",
+    "gid://shopify/Product/6795733303488",
+    "gid://shopify/Product/6795738939584",
+    "gid://shopify/Product/6795741495488",
+    "gid://shopify/Product/6795744968896",
+    "gid://shopify/Product/6795748180160",
+    "gid://shopify/Product/6795749851328",
+    "gid://shopify/Product/6795750506688",
+    "gid://shopify/Product/6795795300544",
+    "gid://shopify/Product/6795815977152",
+    "gid://shopify/Product/6813665624256",
+    "gid://shopify/Product/6813677912256",
+    "gid://shopify/Product/6813679714496",
+    "gid://shopify/Product/6813681516736",
+    "gid://shopify/Product/6813682958528",
+    "gid://shopify/Product/6813684334784",
+    "gid://shopify/Product/6813686333632",
+    "gid://shopify/Product/6813688103104",
+    "gid://shopify/Product/6813690003648",
+    "gid://shopify/Product/6813691707584",
+    "gid://shopify/Product/6813692985536",
+    "gid://shopify/Product/6813694099648",
+    "gid://shopify/Product/6813695443136",
+    "gid://shopify/Product/6813696622784",
+    "gid://shopify/Product/6813697867968",
+    "gid://shopify/Product/6813699047616",
+    "gid://shopify/Product/6849885929664",
+    "gid://shopify/Product/6880218185920",
+    "gid://shopify/Product/6882640462016",
+    "gid://shopify/Product/6882642854080",
+    "gid://shopify/Product/6882643312832",
+    "gid://shopify/Product/6882643968192",
+    "gid://shopify/Product/6882644525248",
+    "gid://shopify/Product/6882644787392",
+    "gid://shopify/Product/6882645213376",
+    "gid://shopify/Product/6882645639360",
+    "gid://shopify/Product/6882645868736",
+    "gid://shopify/Product/6882645999808",
+    "gid://shopify/Product/6882646360256",
+    "gid://shopify/Product/6882646655168",
+    "gid://shopify/Product/6882646884544",
+    "gid://shopify/Product/6882647113920",
+    "gid://shopify/Product/6882647408832",
+    "gid://shopify/Product/6882647572672",
+    "gid://shopify/Product/6882648752320",
+    "gid://shopify/Product/6882649145536",
+    "gid://shopify/Product/6882649440448",
+    "gid://shopify/Product/6882649538752",
+    "gid://shopify/Product/6882649735360",
+    "gid://shopify/Product/6903773593792",
+    "gid://shopify/Product/6903777820864",
+    "gid://shopify/Product/6903778115776",
+    "gid://shopify/Product/6904049598656",
+    "gid://shopify/Product/6904052842688",
+    "gid://shopify/Product/6904062804160",
+    "gid://shopify/Product/6904066703552",
+    "gid://shopify/Product/6915566698688",
+    "gid://shopify/Product/6927504048320",
+    "gid://shopify/Product/6927518630080"
+  ];
   public $products;
   public $variants;
   public $variant_shippings;
@@ -37,37 +301,36 @@ class ProductFields{
   public $metafields;
   public $meta_keywords;
   public $custom_categories;
-  
-  
 
-  public function __construct($products){
+
+
+  public function __construct($products)
+  {
     $this->fields = BrugsMigrationTool::$settings['FIELDS'];
     $this->products = $products;
-    $this->shopify_data = BrugsMigrationTool::$settings['IS_DEV'] ? 'shopify_data_dev':'shopify_data';
+    $this->shopify_data = BrugsMigrationTool::$settings['IS_DEV'] ? 'shopify_data_dev' : 'shopify_data';
   }
 
 
 
 
   //SUB ENTITY GETS
-  private function getMaterialForCategory(){
 
-  }
-  private function get_description($product){
+  private function get_description($product)
+  {
     $description = $product['description'];
-
   }
 
-  private function get_material_master(){
+  private function get_material_master()
+  {
     $category = $this->category;
     $this->material_master = null;
 
-    $materials = explode(',',$this->materials);
+    $materials = explode(',', $this->materials);
     $material_categories = collect(Constants::$SPECIAL_MATERIAL_CATEGORIES);
 
     $materials_master_arr = [];
     foreach ($materials as $material) {
-      
       $master_material = $material_categories->first(function ($value, $key) use ($material) {
         return stripos($material, $value);
       });
@@ -75,137 +338,141 @@ class ProductFields{
       empty($master_material) ? null : $materials_master_arr[] = $master_material;
     }
 
-    if(is_array($materials_master_arr) && count($materials_master_arr) > 0){
-    $this->material_master = implode(",", $materials_master_arr);
+    if (is_array($materials_master_arr) && count($materials_master_arr) > 0) {
+      $this->material_master = implode(",", $materials_master_arr);
     }
     return $this;
-
   }
 
-  private function get_color_master(){
+  private function get_color_master()
+  {
     $this->colors_master = null;
     $colors = explode(',', $this->colors);
     $color_categories = Constants::$SPECIAL_COLOR_CATEGORIES;
-    
+
     $colors_master_arr = [];
-    foreach($colors as $color){
-      if( array_key_exists($color,$color_categories) && !empty($color_categories[$color]) ){
+    foreach ($colors as $color) {
+      if (array_key_exists($color, $color_categories) && !empty($color_categories[$color])) {
         $colors_master_arr[] = $color_categories[$color];
       }
     }
     $colors_master_arr = collect($colors_master_arr)->flatten()->unique()->toArray();
-    
 
-    if(is_array($colors_master_arr) && count($colors_master_arr) > 0){
+
+    if (is_array($colors_master_arr) && count($colors_master_arr) > 0) {
       $this->colors_master = implode(',', $colors_master_arr);
     }
-    
+
     return $this;
-
-
   }
-  private function get_materials($product){
+  private function get_materials($product)
+  {
     $this->materials = null;
-  
+
     $product = collect($product['custom_category']);
-   
+
     $materials = $product->filter(function ($value, $key) {
-      
+
       return $value != '' && $value["custom_category_id"] == 5;
     })->pluck("value");
 
     $materials = $materials->filter()->toArray();
-    
-    if(is_array($materials) && !in_array('',$materials) && !in_array(null, $materials) && count($materials) > 0){
-    $materials_string = implode(",", $materials);
-    
-    $this->materials = $materials_string;
+
+    if (is_array($materials) && !in_array('', $materials) && !in_array(null, $materials) && count($materials) > 0) {
+      $materials_string = implode(",", $materials);
+
+      $this->materials = $materials_string;
     }
-      
-    
+
+
     return $this;
   }
 
-  private function get_styles($product){
+  private function get_styles($product)
+  {
     $this->styles = null;
     $product = collect($product['custom_category']);
     $styles = $product->filter(function ($value, $key) {
       return $value["custom_category_id"] == 4;
     })->pluck("value")->toArray();
 
-    if(is_array($styles) && count($styles) > 0){
-    $styles_string = implode(",", $styles);
-    $this->styles = $styles_string;
+    if (is_array($styles) && count($styles) > 0) {
+      $styles_string = implode(",", $styles);
+      $this->styles = $styles_string;
     }
     return $this;
   }
-  private function get_sizes($product){
+  private function get_sizes($product)
+  {
     $this->sizes = null;
     $product = collect($product['custom_category']);
     $sizes = $product->filter(function ($value, $key) {
       return $value["custom_category_id"] == 1;
     })->pluck("value")->toArray();
 
-    if(is_array($sizes) && count($sizes) > 0){
-    $sizes_string = implode(",", $sizes);
-    $this->sizes = $sizes_string;
+    if (is_array($sizes) && count($sizes) > 0) {
+      $sizes_string = implode(",", $sizes);
+      $this->sizes = $sizes_string;
     }
     return $this;
   }
-  private function get_shapes($product){
+  private function get_shapes($product)
+  {
     $this->shapes = null;
     $product = collect($product['custom_category']);
     $shapes = $product->filter(function ($value, $key) {
       return $value["custom_category_id"] == 2;
     })->pluck("value")->toArray();
 
-    if(is_array($shapes) && count($shapes) > 0){
-    $shapes_string = implode(",", $shapes);
-    $this->shapes = $shapes_string;
+    if (is_array($shapes) && count($shapes) > 0) {
+      $shapes_string = implode(",", $shapes);
+      $this->shapes = $shapes_string;
     }
     return $this;
   }
-  private function get_prices($product){
+  private function get_prices($product)
+  {
     $this->prices = null;
     $product = collect($product['custom_category']);
     $prices = $product->filter(function ($value, $key) {
       return $value["custom_category_id"] == 3;
     })->pluck("value")->toArray();
 
-    if(is_array($prices) && count($prices) > 0){
-    $prices_string = implode(",", $prices);
-    $this->prices = $prices_string;
+    if (is_array($prices) && count($prices) > 0) {
+      $prices_string = implode(",", $prices);
+      $this->prices = $prices_string;
     }
     return $this;
   }
 
-  private function get_category($product){
+  private function get_category($product)
+  {
     $this->category = null;
     $this->category = $product["type"]["name"];
     return $this;
   }
 
-  private function get_colors($product){
+  private function get_colors($product)
+  {
     $this->colors = null;
     $product = collect($product['colors']);
     $colors = $product->map(function ($value) {
       return $value["color_name"]["name"];
     })->toArray();
 
-    if(is_array($colors) && count($colors) > 0){
+    if (is_array($colors) && count($colors) > 0) {
 
-    $colors_string = implode(",", $colors);
-    $this->colors = $colors_string;
-
+      $colors_string = implode(",", $colors);
+      $this->colors = $colors_string;
     }
     return $this;
-
   }
 
-  private function get_custom_categories($product){
+  private function get_custom_categories($product)
+  {
     $this->custom_categories = null;
     $custom_categories = [];
-    if($product['clearance']){
+    if ($product['clearance']) {
       $custom_categories[] = 'Clearance';
     }
     if ($product['top_seller']) {
@@ -223,13 +490,11 @@ class ProductFields{
     if ($product['featured']) {
       $custom_categories[] = 'Featured';
     }
-    if($product['outdoor_safe']){
+    if ($product['outdoor_safe']) {
       $custom_categories[] = 'Outdoor';
     }
-    
+
     return $this->custom_categories = $custom_categories;
-
-
   }
 
   private function get_subtype($product)
@@ -240,24 +505,25 @@ class ProductFields{
   {
     return $product['type']['name'];
   }
-  
+
 
 
   //MAIN SHOPIFY ENTITY GETS
 
-  private function get_title($product){
+  private function get_title($product)
+  {
     $title_collection = ($product['collection'] == 'Tigris' || $product['collection'] == 'Istanbul' || $product['collection'] == 'MARASH') ? $product['design'] . ' ' : '';
     $title_washable = $product['washable'] ? 'Washable ' : '';
-    return $product['collection'] .' '.$title_collection.''.$title_washable.'' .$product['subtype']['name'];
+    return $product['collection'] . ' ' . $title_collection . '' . $title_washable . '' . $product['subtype']['name'];
   }
 
 
   private function get_body_html($parent_data, $get_custom_description = false)
   {
-    
+
     $this->get_materials($parent_data);
     $this->get_styles($parent_data);
-    
+
     $cv = '';
     $customDescription['description'] = [];
 
@@ -289,15 +555,15 @@ class ProductFields{
         ];
       }
       //COLORS
-    
+
 
       if (isset($parent_data['colors'])) {
         $colors = [];
-        foreach($parent_data['colors'] as $color){
+        foreach ($parent_data['colors'] as $color) {
           $colors[] = $color['color_name']['name'];
         }
       }
-      
+
 
       if (count($colors) > 0) {
         $colorsInfo = "<b>Colors:</b> " . implode(", ", $colors) . "<br>";
@@ -331,7 +597,7 @@ class ProductFields{
         'title' => 'Material',
         'content' => $this->materials
       ];
-        
+
       //if(!empty($parent_data[backing])) $d.= "<b>Backing:</b> $parent_data[backing]<br>";
       if (!empty($parent_data["pile"])) {
         $pileInfo = '<b>Pile:</b> ' . $parent_data["pile"] . '<br>';
@@ -353,7 +619,7 @@ class ProductFields{
 
       if (
         ($parent_data["subtype"]["name"] == "Table Lamp" || $parent_data["subtype"]["name"] == "Floor Lamp"
-        || $parent_data["subtype"]["name"] == "Ceiling Lighting" || $parent_data["subtype"]["name"] == "Wall Sconces")
+          || $parent_data["subtype"]["name"] == "Ceiling Lighting" || $parent_data["subtype"]["name"] == "Wall Sconces")
         && !empty($parent_data["size"])
       ) {
         $pileHeightInfo = '<b>Dimensions:</b> ' . $parent_data["size"] . '"<br>';
@@ -363,7 +629,7 @@ class ProductFields{
           'content' => $parent_data["size"]
         ];
       }
-      
+
       //if($surya_data["pileheight-in"] > 0 )
       //if(!empty($parent_data[navigationalcolor])) $d.= "<b>Navigational Color:</b> $parent_data[navigationalcolor]<br>";
 
@@ -376,7 +642,7 @@ class ProductFields{
           'content' => $this->styles
         ];
       }
-      
+
       //if(!empty($parent_data[shape])) $d.= "Shape: $parent_data[shape]<br>";
       //
       //if(!empty($parent_data[bordermaterial])) $d.= "<b>Border Material:</b> $parent_data[bordermaterial]<br>";
@@ -396,33 +662,33 @@ class ProductFields{
           'content' => $outdoorStatus
         ];
       }
-      
 
-     
-      
-        
-          
-            if ($parent_data['washable'] == 1) {
-              $washableInfo = "<b>Machine washable:</b> Yes<br>";
-              $d .= $washableInfo;
-              $customDescription['description'][] = [
-                'title' => 'Machine Washable',
-                'content' => 'Yes'
-              ];
-            } 
-            if ($parent_data['recycled'] == 1) {
-              $recycledInfo = "<b>Recycled:</b> Yes<br>";
-              $d .= $recycledInfo;
-              $customDescription['description'][] = [
-                'title' => 'Recycled',
-                'content' => 'Yes'
-              ];
-            }
-            
-          
-        
-      
-      
+
+
+
+
+
+      if ($parent_data['washable'] == 1) {
+        $washableInfo = "<b>Machine washable:</b> Yes<br>";
+        $d .= $washableInfo;
+        $customDescription['description'][] = [
+          'title' => 'Machine Washable',
+          'content' => 'Yes'
+        ];
+      }
+      if ($parent_data['recycled'] == 1) {
+        $recycledInfo = "<b>Recycled:</b> Yes<br>";
+        $d .= $recycledInfo;
+        $customDescription['description'][] = [
+          'title' => 'Recycled',
+          'content' => 'Yes'
+        ];
+      }
+
+
+
+
+
 
       if (!empty($parent_data["country_of_origin"])) {
         $customOfOriginInfo = "<b>Made In:</b> " . $parent_data["country_of_origin"] . "<br>";
@@ -525,7 +791,8 @@ class ProductFields{
     }
   }
 
-  private function get_tags($parent_data){
+  private function get_tags($parent_data)
+  {
     $this->get_category($parent_data);
     $this->get_materials($parent_data);
     $this->get_material_master();
@@ -534,7 +801,7 @@ class ProductFields{
     $this->get_sizes($parent_data);
     $this->get_shapes($parent_data);
     $this->get_prices($parent_data);
-    
+
     $this->get_colors($parent_data);
     $this->get_color_master();
     $this->get_custom_categories($parent_data);
@@ -554,123 +821,122 @@ class ProductFields{
     $material_master_tags = null;
     $color_master_tags = null;
 
-    (!empty($this->materials)) ? $materials = explode(',',$this->materials) : null;
-    
-    if(isset($materials) && count($materials) > 0){
-    $material_tags = collect($materials)->map(function ($item, $key) {
-      
-      return 'Material__'.ucfirst($item);
-    });
+    (!empty($this->materials)) ? $materials = explode(',', $this->materials) : null;
+
+    if (isset($materials) && count($materials) > 0) {
+      $material_tags = collect($materials)->map(function ($item, $key) {
+
+        return 'Material__' . ucfirst($item);
+      });
     }
 
-    
-    (!empty($this->material_master)) ? $material_master = explode(',', $this->material_master):null;
+
+    (!empty($this->material_master)) ? $material_master = explode(',', $this->material_master) : null;
     if (isset($material_master) && count($material_master) > 0) {
-    
-    $material_master_tags = collect($material_master)->map(function ($item, $key) {
-      return 'MaterialMaster::' . ucfirst($item);
-    })->toArray();
+
+      $material_master_tags = collect($material_master)->map(function ($item, $key) {
+        return 'MaterialMaster::' . ucfirst($item);
+      })->toArray();
     }
 
 
 
-    (!empty($this->styles)) ? $styles = explode(',',$this->styles):null;
+    (!empty($this->styles)) ? $styles = explode(',', $this->styles) : null;
 
     if (isset($styles) && count($styles) > 0) {
-    $style_tags =collect($styles)->map(function ($item, $key) {
-      return 'Style__'. ucfirst($item);
-    });
+      $style_tags = collect($styles)->map(function ($item, $key) {
+        return 'Style__' . ucfirst($item);
+      });
     }
 
 
-   (!empty($this->sizes)) ? $sizes = explode(',', $this->sizes):null;
+    (!empty($this->sizes)) ? $sizes = explode(',', $this->sizes) : null;
 
     if (isset($sizes) && count($sizes) > 0) {
-    $size_tags = collect($sizes)->map(function ($item, $key) {
-      return 'Size__' . ucfirst($item);
-    });
+      $size_tags = collect($sizes)->map(function ($item, $key) {
+        return 'Size__' . ucfirst($item);
+      });
     }
 
 
 
-    (!empty($this->shapes)) ? $shapes = explode(',', $this->shapes):null;
+    (!empty($this->shapes)) ? $shapes = explode(',', $this->shapes) : null;
 
     if (isset($shapes) && count($shapes) > 0) {
-    $shape_tags = collect($shapes)->map(function ($item, $key) {
-      return 'Shape__' . ucfirst($item);
-    });
+      $shape_tags = collect($shapes)->map(function ($item, $key) {
+        return 'Shape__' . ucfirst($item);
+      });
     }
 
 
-    (!empty($this->prices)) ? $prices = explode(',', $this->prices):null;
+    (!empty($this->prices)) ? $prices = explode(',', $this->prices) : null;
 
     if (isset($prices) && count($prices) > 0) {
-    $price_tags = collect($prices)->map(function ($item, $key) {
-      return 'Price__' . ucfirst($item);
-    });
+      $price_tags = collect($prices)->map(function ($item, $key) {
+        return 'Price__' . ucfirst($item);
+      });
     }
 
 
 
-    (!empty($this->category)) ? $category = explode(',', $this->category):null;
+    (!empty($this->category)) ? $category = explode(',', $this->category) : null;
 
     if (isset($category) && count($category) > 0) {
-    $category_tags = collect($category)->map(function ($item, $key) {
-      return 'Category__' . ucfirst($item);
-    });
+      $category_tags = collect($category)->map(function ($item, $key) {
+        return 'Category__' . ucfirst($item);
+      });
     }
 
 
     (!empty($this->colors)) ? $colors = explode(',', $this->colors) : null;
 
     if (isset($colors) && count($colors) > 0) {
-    $color_tags = collect($colors)->map(function ($item, $key) {
-      return 'Color__' . ucfirst($item);
-    });
+      $color_tags = collect($colors)->map(function ($item, $key) {
+        return 'Color__' . ucfirst($item);
+      });
     }
 
 
     (!empty($this->colors_master)) ? $colors_master = explode(',', $this->colors_master) : null;
 
     if (isset($colors_master) && count($colors_master) > 0) {
-    $color_master_tags = collect($colors_master)->map(function ($item, $key) {
-      return 'ColorMaster::' . ucfirst($item);
-    });
+      $color_master_tags = collect($colors_master)->map(function ($item, $key) {
+        return 'ColorMaster::' . ucfirst($item);
+      });
     }
 
     $custom_categories_tags = null;
     $custom_categories = $this->custom_categories;
-    if(count($custom_categories) > 0){
+    if (count($custom_categories) > 0) {
       $custom_categories_tags = collect($custom_categories)->map(function ($item, $key) {
-        return 'Custom Category__'.$item;
+        return 'Custom Category__' . $item;
       });
     }
-    if($parent_data["real_collection"] == "One of a Kind"){
+    if ($parent_data["real_collection"] == "One of a Kind") {
       $custom_categories_tags[] = 'Custom Category__One of a Kind';
     }
-    if ($parent_data["pile"] == "Plush Pile") {
+    if ($parent_data["pile"] == "Plush Pile" && !in_array($parent_data["real_design"], Constants::$PLUSH_PILE_NOT_SHAGS)) {
       $style_tags[] = 'Style__Shags';
     }
-    
-
-    $tags = collect()->push($material_tags,$material_master_tags,$style_tags,$size_tags,$shape_tags,$price_tags,$category_tags,$color_tags,$color_master_tags, $custom_categories_tags)->flatten()->toArray();
 
 
-    return implode(",",$tags);
+    $tags = collect()->push($material_tags, $material_master_tags, $style_tags, $size_tags, $shape_tags, $price_tags, $category_tags, $color_tags, $color_master_tags, $custom_categories_tags)->flatten()->toArray();
 
 
+    return implode(",", $tags);
   }
-  private function get_metafields($product){
+  private function get_metafields($product)
+  {
     $this->get_materials($product);
     $this->get_styles($product);
     $this->get_category($product);
     $this->get_metakeywords($product);
     $this->get_colors($product);
-    $desc = $this->get_body_html($product,true)['description'];
+    $desc = $this->get_body_html($product, true)['description'];
 
     $product_id = isset($product[$this->shopify_data]['shopify_product_id']) ? $product[$this->shopify_data]['shopify_product_id'] : null;
     $bc_product_id = isset($product[$this->shopify_data]['bc_product_id']) ? $product[$this->shopify_data]['bc_product_id'] : null;
-    
+
     $custom_data = [
       'real_design' => $product['real_design'],
       'group_id' => $product['group_id'],
@@ -693,64 +959,213 @@ class ProductFields{
       'product_care' => '',
       'meta_keywords' => $this->meta_keywords
     ];
-    
-    $metafield = [['id' => $product['metafield_graphql_api_id'],'namespace' => 'custom_data','key' => 'custom_data2', 'valueType' => 'JSON_STRING',
-    'value' => json_encode($custom_data)
+
+    $metafield = [[
+      'id' => $product['metafield_graphql_api_id'], 'namespace' => 'custom_data', 'key' => 'custom_data2', 'valueType' => 'JSON_STRING',
+      'value' => json_encode($custom_data)
     ]];
     $this->metafields = $metafield;
 
     return $metafield;
-
   }
-  private function get_metakeywords($product){
+  private function get_new_metafields($product)
+  {
+    $this->get_materials($product);
+    $this->get_styles($product);
+    $this->get_category($product);
+    $this->get_metakeywords($product);
+    $this->get_colors($product);
+    $desc = $this->get_body_html($product, true)['description'];
+
+    $product_id = isset($product[$this->shopify_data]['shopify_product_id']) ? $product[$this->shopify_data]['shopify_product_id'] : null;
+    $bc_product_id = isset($product[$this->shopify_data]['bc_product_id']) ? $product[$this->shopify_data]['bc_product_id'] : null;
+
+    $keywords = collect($this->meta_keywords)->map(function ($item) {
+      return ['keyword' => $item];
+    })->toJson();
+    $style = collect(explode(',', $this->styles))->map(function ($item) {
+      return ['style' => $item];
+    })->toJson();
+    $material
+      = collect(explode(',', $this->materials))->map(function ($item) {
+        return ['material' => $item];
+      })->toJson();
+    $other_colors
+      = collect(explode(',', $this->colors))->map(function ($item) {
+        return ['color' => $item];
+      })->toJson();
+    $colors = explode(',', $this->colors);
+
+
+
+    $metafields = [
+
+      [
+        'namespace' => 'global', 'key' => 'real_design', 'valueType' => 'STRING',
+        'value' => $product['real_design'], 'description' => 'Real Design'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'design', 'valueType' => 'STRING',
+        'value' => $product['design'], 'description' => 'Design'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'group_id', 'valueType' => 'STRING',
+        'value' => $product['group_id'], 'description' => 'Group'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'real_collection', 'valueType' => 'STRING',
+        'value' => $product['real_collection'], 'description' => 'Real Collection'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'collection', 'valueType' => 'STRING',
+        'value' => $product['collection'], 'description' => 'Collection'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'type', 'valueType' => 'STRING',
+        'value' => $this->get_type($product), 'description' => 'Type'
+      ],
+
+      [
+        'namespace' => 'global', 'key' => 'brand', 'valueType' => 'STRING',
+        'value' => $product['brand'], 'description' => 'Brand'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'designer', 'valueType' => 'STRING',
+        'value' => $product['designer'], 'description' => 'Designer'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'country_of_origin', 'valueType' => 'STRING',
+        'value' => $product['country_of_origin'], 'description' => 'Country of Origin'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'pile', 'valueType' => 'STRING',
+        'value' => $product['pile'], 'description' => 'Pile'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'keywords', 'valueType' => 'JSON_STRING',
+        'value' => $keywords, 'description' => 'Keywords'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'style', 'valueType' => 'JSON_STRING',
+        'value' => $style, 'description' => 'Style'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'material', 'valueType' => 'JSON_STRING',
+        'value' => $material, 'description' => 'Material'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'main_color', 'valueType' => 'STRING',
+        'value' => $colors[0], 'description' => 'Main Color'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'colors', 'valueType' => 'JSON_STRING',
+        'value' => $other_colors, 'description' => 'Color'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'construction', 'valueType' => 'STRING',
+        'value' => $product['construction'], 'description' => 'Construction'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'fragile', 'valueType' => 'BOOLEAN',
+        'value' => $product['fragile'] ? "true" : "false", 'description' => 'Fragile'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'clearance', 'valueType' => 'BOOLEAN',
+        'value' => $product['clearance'] ? "true" : "false", 'description' => 'Clearance'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'assembly_required', 'valueType' => 'BOOLEAN',
+        'value' => $product['assembly_required'] ? "true" : "false", 'description' => 'Assembly Required'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'outdoor_safe', 'valueType' => 'BOOLEAN',
+        'value' => $product['outdoor_safe'] ? "true" : "false", 'description' => 'Outdoor Safe'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'washable', 'valueType' => 'BOOLEAN',
+        'value' => $product['washable'] ? "true" : "false", 'description' => 'Washable'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'top_seller', 'valueType' => 'BOOLEAN',
+        'value' => $product['top_seller'] ? "true" : "false", 'description' => 'Top Seller'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'recycled', 'valueType' => 'BOOLEAN',
+        'value' => $product['recycled'] ? "true" : "false", 'description' => 'Recycled'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'new_arrival', 'valueType' => 'BOOLEAN',
+        'value' => $product['new_arrival'] ? "true" : "false", 'description' => 'New Arrival'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'featured', 'valueType' => 'BOOLEAN',
+        'value' => $product['featured'] ? "true" : "false", 'description' => 'Featured'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'description', 'valueType' => 'STRING',
+        'value' => $product['description'], 'description' => 'Description'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'status', 'valueType' => 'STRING', 'description' => 'Status'
+      ],
+
+
+    ];
+
+    $this->metafields = $metafields;
+
+    return $metafields;
+  }
+  private function get_metakeywords($product)
+  {
     $this->get_materials($product);
     $this->get_colors($product);
     $productType = 'Area Rug';
-   
 
-   $colors = explode(',',$this->colors);
-   $materials = explode(',',$this->materials);
+
+    $colors = explode(',', $this->colors);
+    $materials = explode(',', $this->materials);
 
     $k = array();
     $k[] = $product["collection"];
     $k[] = $product["design"];
     foreach ($colors as $color) {
-    $k[] = $color . ' ' . $productType;
+      $k[] = $color . ' ' . $productType;
     }
     if (!empty($product["construction"])) $k[] = $product["construction"] . ' ' . $productType;
-    foreach($materials as $material){
-    $k[] = $material. ' ' . $productType;
+    foreach ($materials as $material) {
+      $k[] = $material . ' ' . $productType;
     }
 
     if (!empty($product["backing"])) $k[] = $product["backing"] . ' ' . $productType;
     if (!empty($product["pile"])) $k[] = $product["pile"] . ' ' . $productType;
     if (!empty($product["style"])) $k[] = $product["style"];
 
-  
+
     $this->meta_keywords = $k;
     return $this;
   }
   private function get_taxcode($product)
   {
-    
     $tax_code = $product['type']['tax_code'];
     return $tax_code;
   }
-  
-  private function get_variants($product){
+
+  private function get_variants($product, $with_metafield = false)
+  {
     $variants  = $product['variants'];
     $prod_type = $this->get_type($product);
 
     $variants_arr = [];
-    foreach($variants as $variant){
-
-      $price = !isset($variant['price']['price']) ? null:$variant['price']['price'] / 100;
+    foreach ($variants as $variant) {
+      $price = !isset($variant['price']['price']) ? null : $variant['price']['price'] / 100;
       $sku = $variant['sku'];
       $skus_last = substr($sku, -1);
       $real_sku = $variant['real_sku'];
       $suffix = '';
       $explodedSize = explode(' ', trim($variant['size']));
       $uniqueSizeDimensions = array_unique($explodedSize);
+      $compareAtPrice = $price * 0.4;
 
       // check if there is only one unique dimention. Ex: 10 x 10 should be 10.
       if (count($uniqueSizeDimensions) == 2) {
@@ -774,20 +1189,19 @@ class ProductFields{
         }
       }
 
-      if($prod_type == 'Pillow Kit' || $prod_type == 'Pillows' || $prod_type == 'Pillow Cover'){
-        $suffix .= ($skus_last == 'P') ? ' with Polyester Insert':null;
-        $suffix .= ($skus_last == 'D') ? ' with Down Insert':null;
-        $suffix .= ($prod_type == 'Pillow Cover') ? ' Pillow Cover':null;
-      
+      if ($prod_type == 'Pillow Kit' || $prod_type == 'Pillows' || $prod_type == 'Pillow Cover') {
+        $suffix .= ($skus_last == 'P') ? ' with Polyester Insert' : null;
+        $suffix .= ($skus_last == 'D') ? ' with Down Insert' : null;
+        $suffix .= ($prod_type == 'Pillow Cover') ? ' Pillow Cover' : null;
       }
-      $options = [$variant['size'].$suffix]  ;
+      $options = [$variant['size'] . $suffix];
       $taxable = true;
       $taxCode = $this->get_taxcode($product);
       $requires_shipping = true;
-      $barcode = (string) $variant['upc']['upc'];
+      $barcode = (string) $variant['upc'][0]['upc'];
       $weight = (float) number_format($variant['shippings']['weight_lbs'], 2);
-      $imageSrc= '';
-      if(!empty($product['images'])){
+      $imageSrc = '';
+      if (!empty($product['images'])) {
         foreach ($product['images'] as $image) {
           if ($image->real_sku == $real_sku) {
             $imageSrc = $image->image_path_compressed;
@@ -795,176 +1209,284 @@ class ProductFields{
         }
       }
 
-      
+      $single_variant = [
+        'price' => $price,
+        'sku' => $sku,
+        'options' => $options,
+        'taxable' => $taxable,
+        'taxCode' => $taxCode,
+        'requiresShipping' => $requires_shipping,
+        'imageSrc' => $imageSrc,
+        'barcode' => $barcode,
+        'weight' => $weight,
+        'weightUnit' => 'POUNDS',
+        'inventoryItem' => ['tracked' => true],
+        'compareAtPrice' => $compareAtPrice
+      ];
 
-    $variants_arr[] = [
-      'price' => $price,
-      'sku' => $sku,
-      'options' => $options,
-      'taxable' => $taxable,
-      'taxCode' => $taxCode,
-      'requiresShipping' => $requires_shipping,
-      'imageSrc' => $imageSrc,
-      'barcode' => $barcode,
-      'weight' => $weight,
-      'weightUnit' => 'POUNDS',
-      "inventoryItem" => ['tracked' => true]
-    ];
-      
+      if ($with_metafield) {
+        $single_variant['metafields'] = $this->get_variant_metafields($product, $variant);
+      }
 
+
+      $variants_arr[] = $single_variant;
     }
 
     return $variants_arr;
   }
 
 
-  private function get_vendor(){
+  private function get_vendor()
+  {
     return 'Hauteloom';
   }
 
+  private function get_variant_metafields($product, $variant)
+  {
+    $this->get_materials($product);
+    $this->get_styles($product);
+    $this->get_category($product);
+    $this->get_metakeywords($product);
+    $this->get_colors($product);
+    $desc = $this->get_body_html($product, true)['description'];
+
+    $product_id = isset($product[$this->shopify_data]['shopify_product_id']) ? $product[$this->shopify_data]['shopify_product_id'] : null;
 
 
-  private function get_images($product){
+    $keywords = collect($this->meta_keywords)->map(function ($item) {
+      return ['keyword' => $item];
+    })->toJson();
+    $style = collect(explode(',', $this->styles))->map(function ($item) {
+      return ['style' => $item];
+    })->toJson();
+    $material
+      = collect(explode(',', $this->materials))->map(function ($item) {
+        return ['material' => $item];
+      })->toJson();
+    $other_colors
+      = collect(explode(',', $this->colors))->map(function ($item) {
+        return ['color' => $item];
+      })->toJson();
+    $colors = explode(',', $this->colors);
+    $size = preg_replace("/((?!x)[a-z]|[A-Z])/", "", $variant['size']);
+    $size = str_replace(' ', '', $size);
+
+    $metafields = [
+      [
+        'namespace' => 'global', 'key' => 'real_sku', 'valueType' => 'STRING',
+        'value' => $variant['real_sku'], 'description' => 'Real Sku'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'sku', 'valueType' => 'STRING',
+        'value' => $variant['sku'], 'description' => 'Sku'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'name', 'valueType' => 'STRING',
+        'value' => $this->get_title($product), 'description' => 'Name'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'shape', 'valueType' => 'STRING',
+        'value' => $variant['shape'], 'description' => 'Shape'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'has_fringe', 'valueType' => 'BOOLEAN',
+        'value' => $variant['fringe'] ? "true" : "false", 'description' => 'Fringe'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'upc', 'valueType' => 'STRING',
+        'value' => (string) $variant['upc'][0]['upc'], 'description' => 'UPC'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'real_upc', 'valueType' => 'STRING',
+        'value' => (string) $variant['upc'][1]['upc'], 'description' => 'Real UPC'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'weight_lbs', 'valueType' => 'STRING',
+        'value' => $variant['shippings']['weight_lbs'], 'description' => 'Weight'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'length_in', 'valueType' => 'STRING',
+        'value' => $variant['shippings']['length_in'], 'description' => 'Length'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'width_in', 'valueType' => 'STRING',
+        'value' => $variant['shippings']['width_in'], 'description' => 'Width'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'height_in', 'valueType' => 'STRING',
+        'value' => $variant['shippings']['height_in'], 'description' => 'Height'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'shipping_weight_lbs', 'valueType' => 'STRING',
+        'value' => $variant['shippings']['shipping_weight_lbs'], 'description' => 'Shipping Weight'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'shipping_length_in', 'valueType' => 'STRING',
+        'value' => $variant['shippings']['shipping_length_in'], 'description' => 'Shipping Length'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'shipping_width_in', 'valueType' => 'STRING',
+        'value' => $variant['shippings']['shipping_width_in'], 'description' => 'Shipping Width'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'shipping_height_in', 'valueType' => 'STRING',
+        'value' => $variant['shippings']['shipping_height_in'], 'description' => 'Shipping Height'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'fulfillment_latency', 'valueType' => 'INTEGER',
+        'value' => (string)$variant['inventory']['fulfillment_latency'], 'description' => 'Fulfillment Latency'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'size', 'valueType' => 'STRING',
+        'value' => $size, 'description' => 'Size'
+      ],
+    ];
+
+
+
+    return $metafields;
+  }
+
+
+
+  private function get_images($product)
+  {
     $images = $product['images'];
     $images_array = [];
-    if(!empty($images)){
-    foreach($images as $image){
-      $image_path_compressed = $image->image_path_compressed;
-      $images_array[]['src'] = $image_path_compressed;
-    }
+    if (!empty($images)) {
+      foreach ($images as $image) {
+        $image_path_compressed = $image->image_path_compressed;
+        $images_array[]['src'] = $image_path_compressed;
+      }
     }
     return $images_array;
-
   }
 
 
 
 
-  public function run(){
-    
-    if(BrugsMigrationTool::$settings['OPERATION'] == 'UPDATE'){
-
-    
-      foreach($this->products as $product)
-      {
-
+  public function run()
+  {
+    if (BrugsMigrationTool::$settings['OPERATION']->is(Operations::Update)) {
+      foreach ($this->products as $product) {
+        
         $skip = false;
         $variants = $this->get_variants($product);
         $images = $this->get_images($product);
+/*
         if (count($images) == 0) {
           $skip = true;
         }
+
         foreach ($variants as $variant) {
+
           if ($variant['price'] == 0 || $variant['price'] == '' || $variant['price'] == null) {
             $skip = true;
           }
         }
+*/
+  
 
-        
 
-        //6729297035456
-
-        if (!$skip) {
+        if ($skip) {
+          continue;
+        }
 
         $tags = $this->get_tags($product);
 
+        $this->result['input']['id'] = $product['graphql_id'];
 
-          //if(!empty($product['graphql_id'])){
-
-        if (in_array('title', $this->fields) || in_array('all', $this->fields)) {
+        if (in_array_r(Fields::Title()->key, $this->fields) || in_array_r(Fields::All()->key, $this->fields)) 
+        {
           $this->result['input']['title'] = $this->get_title($product);
         }
 
-        if (in_array('descriptionHtml', $this->fields) || in_array('all', $this->fields) ) {
+        if (in_array_r(Fields::DescriptionHtml()->key, $this->fields) || in_array_r(Fields::All()->key, $this->fields)) 
+        {
           $this->result['input']['descriptionHtml'] = $this->get_body_html($product);
         }
 
-    
 
-        if(in_array('metafields', $this->fields) || in_array('all', $this->fields)){
+        
+        if (in_array_r(Fields::Metafields()->key, $this->fields) || in_array_r(Fields::All()->key, $this->fields)) {
           $this->result['input']['metafields'] = $this->get_metafields($product);
+        }
+        if (in_array_r(Fields::NewMetafields()->key, $this->fields) ) {
+          $this->result['input']['metafields'] = $this->get_new_metafields($product);
         }
 
 
-        $this->result['input']['id'] = $product['graphql_id'];
-        if (in_array('tags', $this->fields) || in_array('all', $this->fields)) {
+        if (in_array_r(Fields::Tags()->key, $this->fields)|| in_array_r(Fields::All()->key, $this->fields))
+        {
           $this->result['input']['tags'] = $this->get_tags($product);
         }
 
 
-        if (in_array('variants', $this->fields)|| in_array('all', $this->fields)) {
-        $this->result['input']['variants'] = $this->get_variants($product);
+        if (in_array_r(Fields::Variants()->key, $this->fields) ) {
+          $this->result['input']['variants'] = $this->get_variants($product);
         }
 
-        // need to update shopifydata tables image id
-         if (in_array('images', $this->fields) || in_array('all', $this->fields)) {
-           $this->result['input']['images'] = $this->get_images($product);
-         }
+        if (in_array_r(Fields::VariantMetafields()->key, $this->fields) || in_array_r(Fields::All()->key, $this->fields)) 
+        {
+          $this->result['input']['variants'] = $this->get_variants($product, true);
+        }
+
+        
+        if (in_array_r(Fields::Images()->key, $this->fields) || in_array_r(Fields::All()->key, $this->fields)) 
+        {
+          $this->result['input']['images'] = $this->get_images($product);
+        }
 
         $this->result['input']['productType'] = $this->get_type($product);
         $this->result['input']['vendor'] = $this->get_vendor($product);
 
         $this->results[] = $this->result;
-        }
-        
       }
-      
     }
-    
+
 
     //OPERATION CREATE
-    if(BrugsMigrationTool::$settings['OPERATION'] == 'CREATE'){
-
-      foreach($this->products as $product){
-        
+    if (BrugsMigrationTool::$settings['OPERATION']->is(Operations::Create)) 
+    {
+      foreach ($this->products as $product) 
+      {
         $skip = false;
         $variants = $this->get_variants($product);
         $images = $this->get_images($product);
-        if(count($images) == 0){
+        if (count($images) == 0) 
+        {
           $skip = true;
         }
-        foreach($variants as $variant){
-          if($variant['price'] == 0 || $variant['price'] == '' || $variant['price'] == null){
+        foreach ($variants as $variant) 
+        {
+          if ($variant['price'] == 0 || $variant['price'] == '' || $variant['price'] == null) 
+          {
             $skip = true;
-          }  
-
+          }
         }
-        
-        
-      if(!$skip){
-
-          $this->result['input']['title'] = $this->get_title($product);
-          $this->result['input']['vendor'] = $this->get_vendor();
-          $this->result['input']['variants'] = $this->get_variants($product);
-          $this->result['input']['metafields'] = $this->get_metafields($product);
-          $this->result['input']['tags'] = $this->get_tags($product);
-          $this->result['input']['images'] = $this->get_images($product);
-          $this->result['input']['descriptionHtml'] = $this->get_body_html($product);
-
-          $this->result['input']['status'] = 'ACTIVE';
-          $this->result['input']['published'] = true;
-          $this->result['input']['productType'] = $this->get_type($product);
-          $this->result['input']['vendor'] = $this->get_vendor($product);
 
 
-          $this->results[] = $this->result;
-         
-
-      }
-          
-
-        
-        
-
+        if ($skip) 
+        {
+          continue;
+        }
+        $this->result['input']['title'] = $this->get_title($product);
+        $this->result['input']['vendor'] = $this->get_vendor();
+        $this->result['input']['variants'] = $this->get_variants($product);
+        $this->result['input']['metafields'] = $this->get_metafields($product);
+        $this->result['input']['tags'] = $this->get_tags($product);
+        $this->result['input']['images'] = $this->get_images($product);
+        $this->result['input']['descriptionHtml'] = $this->get_body_html($product);
+        $this->result['input']['status'] = 'ACTIVE';
+        $this->result['input']['published'] = true;
+        $this->result['input']['productType'] = $this->get_type($product);
+        $this->result['input']['vendor'] = $this->get_vendor($product);
+        $this->results[] = $this->result;
       }
     }
 
-    //}
-    
+
+
     return $this->results;
-    
   }
-
-
-
 }

@@ -15,5 +15,8 @@
             "Erenkucukersoftware\\BrugsMigrationTool\\": "src/"
         }
     },
-    "require": {}
+    "require": {
+        "maatwebsite/excel": "4.0.x-dev",
+        "bensampo/laravel-enum": "^3.4"
+    }
 }

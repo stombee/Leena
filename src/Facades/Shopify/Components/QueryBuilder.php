@@ -2,19 +2,17 @@
 
 namespace Erenkucukersoftware\BrugsMigrationTool\Facades\Shopify\Components;
 
-use GuzzleHttp\Client;
+
 use Erenkucukersoftware\BrugsMigrationTool\Constants;
 
 
 class QueryBuilder{
 
   public $query;
-  public $updateable_fields;
   public $prefer;
   
 
   public function __construct(){
-    $this->updateable_fields = Constants::$UPDATEABLE_PRODUCT_FIELDS;
     
 
   }

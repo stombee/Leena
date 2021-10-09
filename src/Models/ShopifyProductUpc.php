@@ -20,9 +20,4 @@ class ShopifyProductUpc extends Model
     return $this->belongsTo(ShopifyProductVariant::class);
   }
 
-  protected static function booted()
-  {
-    static::addGlobalScope(new ShopifyProductUpcScope);
-  }
-
 }
