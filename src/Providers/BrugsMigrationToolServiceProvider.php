@@ -41,5 +41,18 @@ class BrugsMigrationToolServiceProvider extends ServiceProvider
     {
         include dirname(__DIR__) . '/Routes/routes.php';
         include dirname(__DIR__) . '/helpers.php';
+        $this->publishConfig();
+
     }
+    private function publishConfig()
+    {
+        $path = $this->getConfigPath();
+        $this->publishes([$path => config_path('product-tool.php')], 'config');
+    }
+
+    private function getConfigPath()
+    {
+        return __DIR__ . '/../config/product-tool.php';
+    }
+
 }

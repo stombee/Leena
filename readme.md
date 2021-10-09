@@ -16,10 +16,11 @@ Product update example
 
 ### Requirements
 
-SHOPIFY_DEV_TOKEN=
-SHOPIFY_DEV_URL=
-SHOPIFY_PRODUCTION_TOKEN=
-SHOPIFY_PRODUCTION_URL=
+Publish Required Config Files
+
+```bash
+php artisan vendor:publish --provider="Erenkucukersoftware\BrugsMigrationTool\Providers\BrugsMigrationToolServiceProvider"
+```
 
 These env fields should be given for connecting Shopify GraphQL Api.
 
