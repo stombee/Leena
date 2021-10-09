@@ -13,6 +13,16 @@ Product update example
 
 
 ## Installation
+
+### Requirements
+
+SHOPIFY_DEV_TOKEN=
+SHOPIFY_DEV_URL=
+SHOPIFY_PRODUCTION_TOKEN=
+SHOPIFY_PRODUCTION_URL=
+
+These env fields should be given for connecting Shopify GraphQL Api.
+
 ```bash
 composer require boutiquerugs/product-tool
 ```
