@@ -1,7 +1,7 @@
 {
-    "name": "erenkucukersoftware/brugs-migration-tool",
-    "description": "Brugs migration tool.",
-    "type": "project",
+    "name": "boutiquerugs/product-tool",
+    "description": "Brugs Product Update & Create tool.",
+    "type": "library",
     "license": "MIT",
     "authors": [
         {
