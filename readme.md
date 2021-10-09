@@ -5,7 +5,9 @@
 ## Flow
 Product update example
 
-[[https://github.com/BoutiqueRugs/Product-Tool/main/images/diagram.png|alt=diagram]]
+
+
+![diagram](https://github.com/BoutiqueRugs/Product-Tool/main/images/diagram.png)
 
 
 
