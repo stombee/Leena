@@ -18,10 +18,6 @@ composer require boutiquerugs/product-tool
 ```
 
 ## Documentation
-For refresh Api Documentation Just use this command.
-```console
-php artisan scribe:generate
-```
 You can access API documentation from [here](http://api.boutiquerugs.com/public/docs).
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
