@@ -7,7 +7,7 @@ Product update example
 
 
 
-![diagram](https://github.com/BoutiqueRugs/Product-Tool/main/images/diagram.png)
+![diagram](https://raw.githubusercontent.com/BoutiqueRugs/Product-Tool/main/images/diagram.png?token=APZRMTD7VWFML2LE2WAUTFLBNLHVQ)
 
 
 
