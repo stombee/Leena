@@ -13,8 +13,8 @@ class GraphQL
 
   public function __construct()
   {
-    $this->query_url = !BrugsMigrationTool::$settings['IS_DEV'] ? 'https://boutiquerugs.myshopify.com' : 'https://boutiquerugs-dev.myshopify.com';
-    $this->token = BrugsMigrationTool::$settings['IS_DEV'] ? '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' : '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';  
+    $this->query_url = !BrugsMigrationTool::$settings['IS_DEV'] ? secEnv('SHOPIFY_PRODUCTION_URL') : secEnv('SHOPIFY_DEV_URL');
+    $this->token = BrugsMigrationTool::$settings['IS_DEV'] ? secEnv('SHOPIFY_DEV_TOKEN') : secEnv('SHOPIFY_PRODUCTION_TOKEN');
   }
 
   public function productUpdate($staged_upload_path)
