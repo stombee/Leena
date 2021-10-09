@@ -22,8 +22,8 @@ class Shopify
 
   public function __construct()
   {
-    $this->query_url = !BrugsMigrationTool::$settings['IS_DEV'] ? secEnv('SHOPIFY_PRODUCTION_URL') : secEnv('SHOPIFY_DEV_URL');
-    $this->token = BrugsMigrationTool::$settings['IS_DEV'] ? secEnv('SHOPIFY_DEV_TOKEN') : secEnv('SHOPIFY_PRODUCTION_TOKEN');
+    $this->query_url = !BrugsMigrationTool::$settings['IS_DEV'] ? config('product-tool.shopify_prod_url') : config('product-tool.shopify_dev_url');
+    $this->token = BrugsMigrationTool::$settings['IS_DEV'] ? config('product-tool.shopify_dev_token') : config('product-tool.shopify_prod_token');
   }
 
 
