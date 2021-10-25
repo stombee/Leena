@@ -17,7 +17,7 @@ Product update example
 ### Requirements
 
 Publish Required Config Files
-
+d
 ```bash
 php artisan vendor:publish --provider="Erenkucukersoftware\BrugsMigrationTool\Providers\BrugsMigrationToolServiceProvider"
 ```

@@ -72,7 +72,7 @@ class ProductFields
     $materials_master_arr = [];
     foreach ($materials as $material) {
       $master_material = $material_categories->first(function ($value, $key) use ($material) {
-        return stripos($material, $value);
+        return like_match('%'.$material.'%', $value);
       });
 
       empty($master_material) ? null : $materials_master_arr[] = $master_material;
@@ -252,7 +252,7 @@ class ProductFields
 
   private function get_title($product)
   {
-    $title_collection = ($product['collection'] == 'Tigris' || $product['collection'] == 'Istanbul' || $product['collection'] == 'MARASH') ? $product['design'] . ' ' : '';
+    $title_collection = ($product['collection'] == 'Tigris' || $product['collection'] == 'Istanbul' || $product['collection'] == 'MARASH' || $product['collection'] == 'Magnolia'|| $product['collection'] == 'HOLI') ? $product['design'] . ' ' : '';
     $title_washable = $product['washable'] ? 'Washable ' : '';
     return $product['collection'] . ' ' . $title_collection . '' . $title_washable . '' . $product['subtype']['name'];
   }
@@ -359,7 +359,7 @@ class ProductFields
 
       if (
         ($parent_data["subtype"]["name"] == "Table Lamp" || $parent_data["subtype"]["name"] == "Floor Lamp"
-          || $parent_data["subtype"]["name"] == "Ceiling Lighting" || $parent_data["subtype"]["name"] == "Wall Sconces")
+        || $parent_data["subtype"]["name"] == "Ceiling Lighting" || $parent_data["subtype"]["name"] == "Wall Sconces")
         && !empty($parent_data["size"])
       ) {
         $pileHeightInfo = '<b>Dimensions:</b> ' . $parent_data["size"] . '"<br>';
@@ -667,12 +667,15 @@ class ProductFields
   }
   private function get_metafields($product)
   {
+    
     $this->get_materials($product);
     $this->get_styles($product);
     $this->get_category($product);
     $this->get_metakeywords($product);
     $this->get_colors($product);
-    $desc = $this->get_body_html($product, true)['description'];
+    $desc = $this->get_body_html($product, true);
+    $desc = isset($desc['description']) ? $desc['description'] : '';
+    
 
     $product_id = isset($product[$this->shopify_data]['shopify_product_id']) ? $product[$this->shopify_data]['shopify_product_id'] : null;
     $bc_product_id = isset($product[$this->shopify_data]['bc_product_id']) ? $product[$this->shopify_data]['bc_product_id'] : null;
@@ -966,7 +969,12 @@ class ProductFields
 
       if ($with_metafield) {
         $single_variant['metafields'] = $this->get_variant_metafields($product, $variant);
+        $narvar_metafields = $this->get_narvar_metafields($product, $variant);
+        $single_variant['metafields'] = array_merge($single_variant['metafields'], $narvar_metafields);
       }
+      
+      
+      
 
 
       $variants_arr[] = $single_variant;
@@ -988,7 +996,8 @@ class ProductFields
     $this->get_category($product);
     $this->get_metakeywords($product);
     $this->get_colors($product);
-    $desc = $this->get_body_html($product, true)['description'];
+    $desc = $this->get_body_html($product, true);
+    $desc = isset($desc['description']) ? $desc['description'] : '';
 
     $product_id = isset($product[$this->shopify_data]['shopify_product_id']) ? $product[$this->shopify_data]['shopify_product_id'] : null;
 
@@ -1103,6 +1112,93 @@ class ProductFields
   }
 
 
+  private function get_narvar_metafields($product,$variant)
+  {
+    $shipping_length = $variant['shippings']['shipping_length_in'];
+    $product_type = $this->get_type($product);
+    $shipping_group = '';
+    if($product_type == 'Rugs'){
+
+      if($shipping_length >= 0 && $shipping_length <= 29){
+        $shipping_group = 'very_small';
+      }
+      if ($shipping_length >= 30 && $shipping_length <= 47) {
+        $shipping_group = 'small';
+      }
+      if ($shipping_length >= 48 && $shipping_length <= 59) {
+        $shipping_group = 'small_plus';
+      }
+      if ($shipping_length >= 60 && $shipping_length <= 71) {
+        $shipping_group = 'medium';
+      }
+      if ($shipping_length >= 72 && $shipping_length <= 83) {
+        $shipping_group = 'medium_plus';
+      }
+      if ($shipping_length >= 84 && $shipping_length <= 95) {
+        $shipping_group = 'large';
+      }
+      if ($shipping_length >= 96 && $shipping_length <= 105) {
+        $shipping_group = 'large_plus';
+      }
+      if ($shipping_length >= 106) {
+        $shipping_group = 'oversize ';
+      }
+
+
+
+    }
+    if($product_type != 'Rugs' ){
+      $girth = 2 * ($variant['shippings']['shipping_width_in'] + $variant['shippings']['shipping_height_in']) +  ($variant['shippings']['shipping_length_in']);
+      if($girth >= 0 && $girth <= 44){
+        $shipping_group = 'very_small';
+      }
+      if ($girth >= 45 && $girth <= 67) {
+        $shipping_group = 'small';
+      }
+      
+      if ($girth >= 68 && $girth <= 89) {
+        $shipping_group = 'small_plus';
+      }
+      
+      if ($girth >= 90 && $girth <= 104) {
+        $shipping_group = 'medium';
+      }
+      if ($girth >= 105 && $girth <= 114) {
+        $shipping_group = 'medium_plus';
+      }
+      if ($girth >= 115 && $girth <= 129) {
+        $shipping_group = 'large';      
+      }
+      if ($girth >= 130 && $girth <= 164) {
+        $shipping_group = 'large_plus';      
+      }
+      if ($girth >= 165 ) {
+        $shipping_group = 'oversize ';      
+      }
+    }
+
+    $length = number_format($variant['shippings']['shipping_length_in'],2);
+    $width = number_format($variant['shippings']['shipping_width_in'],2);
+    $height = number_format($variant['shippings']['shipping_height_in'],2);
+
+    $metafields = [
+      [
+        'namespace' => 'global', 'key' => 'SHIPPING_GROUPS', 'valueType' => 'STRING',
+        'value' => $shipping_group, 'description' => 'Shipping Groups'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'WIDTH', 'valueType' => 'STRING',
+        'value' => $width, 'description' => 'Width Description'
+      ],
+      [
+        'namespace' => 'global', 'key' => 'HEIGHT', 'valueType' => 'STRING',
+        'value' => $height, 'description' => 'Height Description'
+      ],
+
+    ];
+
+    return $metafields;
+  }
 
 
   public function run()
@@ -1151,10 +1247,11 @@ class ProductFields
         if (in_array_r(Fields::Metafields()->key, $this->fields) || in_array_r(Fields::All()->key, $this->fields)) {
           $this->result['input']['metafields'] = $this->get_metafields($product);
         }
+        /*
         if (in_array_r(Fields::NewMetafields()->key, $this->fields) ) {
           $this->result['input']['metafields'] = $this->get_new_metafields($product);
         }
-
+        */
 
         if (in_array_r(Fields::Tags()->key, $this->fields)|| in_array_r(Fields::All()->key, $this->fields))
         {
@@ -1193,6 +1290,8 @@ class ProductFields
         $skip = false;
         $variants = $this->get_variants($product);
         $images = $this->get_images($product);
+
+        /*
         if (count($images) == 0) 
         {
           $skip = true;
@@ -1210,9 +1309,10 @@ class ProductFields
         {
           continue;
         }
+        */
         $this->result['input']['title'] = $this->get_title($product);
         $this->result['input']['vendor'] = $this->get_vendor();
-        $this->result['input']['variants'] = $this->get_variants($product);
+        $this->result['input']['variants'] = $this->get_variants($product,true);
         $this->result['input']['metafields'] = $this->get_metafields($product);
         $this->result['input']['tags'] = $this->get_tags($product);
         $this->result['input']['images'] = $this->get_images($product);

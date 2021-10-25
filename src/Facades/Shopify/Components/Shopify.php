@@ -171,6 +171,7 @@ class Shopify
 
   public function run($query, $prefer = 'graphql')
   {
+    
     $client = new \GuzzleHttp\Client();
     if ($prefer == 'rest') 
     {

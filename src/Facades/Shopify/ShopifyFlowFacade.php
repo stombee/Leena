@@ -38,6 +38,7 @@ class ShopifyFlowFacade
     
     $files = $this->shopify->createJsonLineFile($products);
     $results = [];
+    dd('shopify prevented');
     foreach( $files as $file )
     {
       $staged_upload_path = $this->shopify->uploadShopifyStagedFiles($file);

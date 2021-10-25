@@ -78,7 +78,7 @@ class BrugsMigrationTool
 
             ];
 
-        ProductsCreated::dispatch($time_stamp);
+        //ProductsCreated::dispatch($time_stamp);
         return $result;
         
 
@@ -185,9 +185,9 @@ class BrugsMigrationTool
 
     public function run()
     {
-        try {
+        /*try {*/
             $this->checkMigrationToolStatus();
-            $this->validateFields(self::$settings['FIELDS']);
+            //$this->validateFields(self::$settings['FIELDS']);
             $this->validateCustomGroups(self::$settings['CUSTOM_GROUP']);
             self::$settings['FIELDS'] = convertEnum(self::$settings['FIELDS'], Fields::class);
             self::$settings['CUSTOM_GROUP'] = convertEnum(self::$settings['CUSTOM_GROUP'], CustomGroups::class);
@@ -207,11 +207,14 @@ class BrugsMigrationTool
 
 
             return $this->success('Product Process Completed Successfully.', $this->response);
-        } catch (\Exception $e) {
-            if (!$e instanceof \Erenkucukersoftware\BrugsMigrationTool\Exceptions\MigrationToolBusyException) {
+        /*} catch (\Exception $exception) {
+            if (!$exception instanceof \Erenkucukersoftware\BrugsMigrationTool\Exceptions\MigrationToolBusyException) {
                 $this->setToolStatus(ToolStatus::Free());
             }
-            echo $e->getMessage();
+            return response()->json(['error_message' => $exception->getMessage()]);
+
+
         }
+        */
     }
 }

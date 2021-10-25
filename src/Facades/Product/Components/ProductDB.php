@@ -7,20 +7,20 @@ use Erenkucukersoftware\BrugsMigrationTool\Models\{ShopifyProduct, ShopifyProduc
 use Erenkucukersoftware\BrugsMigrationTool\Facades\Shopify\ShopifyFlowFacade;
 use Erenkucukersoftware\BrugsMigrationTool\BrugsMigrationTool;
 use Illuminate\Support\Facades\{DB, Log};
-
+use Illuminate\Support\Facades\Storage;
+use Rs\JsonLines\JsonLines;
 
 class ProductDB
 {
   public $products;
   public $shopify_data;
+  public $shopify_images;
 
 
   public function __construct()
-  {
+  {      
     $this->shopify_data = BrugsMigrationTool::$settings['IS_DEV'] ? 'shopify_data_dev':'shopify_data';
   }
-
-
   public function getImages()
   {
     $images = DB::connection('mysql2')->select('SELECT * FROM br_images INNER JOIN br_image_variations on  br_images.id = br_image_id WHERE br_image_variations.image_type = \'large\' ');
@@ -33,9 +33,9 @@ class ProductDB
     }
     
     Log::debug('Images retrieved');
+    $this->images = $images_arr;
     return $images_arr;
   }
-
   public function getColorVariants()
   {
     $color_variant_count = DB::connection('mysql2')->select('SELECT count(*) as color_variant_count  FROM shopify_data AS bd, br_products AS mp WHERE bd.real_design = mp.real_design AND (bd.parent_id IS NOT NULL AND bd.parent_id != \'\')  ')[0]->color_variant_count;
@@ -48,7 +48,7 @@ class ProductDB
       $offset = (($i - 1) * $maxAtOneTime);
       $start = ($offset == 0 ? 0 : ($offset + 1));
 
-      $data = DB::connection('mysql2')->select('SELECT bd.data,bd.parent_id, mp.design,mp.display,bd.real_design,bd.tiny_image_url FROM shopify_data AS bd, br_products AS mp WHERE bd.real_design = mp.real_design AND (bd.parent_id IS NOT NULL AND bd.parent_id != \'\') AND display = 1  LIMIT ' . $maxAtOneTime . ' OFFSET ' . $start . ' ');
+      $data = DB::connection('mysql2')->select('SELECT bd.data,bd.parent_id,bd.variants_data, mp.design,mp.display,bd.shopify_product_id,bd.real_design,bd.tiny_image_url FROM shopify_data AS bd, br_products AS mp WHERE bd.real_design = mp.real_design AND (bd.parent_id IS NOT NULL AND bd.parent_id != \'\') AND display = 1  LIMIT ' . $maxAtOneTime . ' OFFSET ' . $start . ' ');
 
 
       $color_variants = $color_variants->merge($data);
@@ -58,6 +58,15 @@ class ProductDB
     
     foreach ($color_variants as $color_variant)
     {
+      
+      $tiny_image = isset($this->shopify_images[$color_variant->shopify_product_id][0]) ? $this->shopify_images[$color_variant->shopify_product_id][0] : '';
+      $url_replacer = '_60x60';
+      $url = $tiny_image;
+
+      $new_url = preg_replace('/(\.[^.]+)$/', sprintf('%s$1', $url_replacer), $url);
+
+      $tiny_image = $new_url;
+      
       $parent_id = $color_variant->parent_id;
       $bc_data = json_decode($color_variant->data, true);
       $bc_data = collect($bc_data)->except(['body_html', 'created_at', 'product_type', 'updated_at', 'published_at', 'template_suffix', 'published_scope', 'vendor', 'options', 'metafield_graphql_api_id'])->toArray();
@@ -65,7 +74,7 @@ class ProductDB
       $color_variant->url = 'https://boutiquerugs.com/collections/all/products/' . $bc_data['handle'];
       $color_variant->this = false;
 
-      $color_variants_arr[$parent_id][] = ['parent_id' => $parent_id, 'design' => $color_variant->design, 'real_design' => $color_variant->real_design, 'tiny_image_url' => $color_variant->tiny_image_url, 'url' => $color_variant->url, 'this' => false];
+      $color_variants_arr[$parent_id][] = ['parent_id' => $parent_id, 'design' => $color_variant->design, 'real_design' => $color_variant->real_design, 'tiny_image_url' => $tiny_image, 'url' => $color_variant->url, 'this' => false];
     }
 
     Log::debug('Color Variants Retrieved');
@@ -73,7 +82,6 @@ class ProductDB
     return $color_variants_arr;
 
   }
-
   public function sortImages($images_arr)
   {
     
@@ -84,14 +92,10 @@ class ProductDB
     
     return $images_arr;
   }
-
   public function getShopifyData()
   {
     return DB::connection('mysql2')->select('SELECT * FROM'.' '.$this->shopify_data);
   }
-
-
-
   public function productsDiff($products_arr,$products_arr2)
   {
     $products_arr_diff = [];
@@ -114,8 +118,6 @@ class ProductDB
     
     return $products_arr_diff;
   }
-
-
   public function getProducts()
   {
 
@@ -197,9 +199,9 @@ class ProductDB
     }
 
     Log::debug('Raw DB Product Ready');
+    
     return $products;
   }
-
   public function addMissingFields($products)
   {
     $products = $products->toArray();
@@ -238,10 +240,4 @@ class ProductDB
     return $products;
 
   }
-
-  
-
-
-
-
 }
