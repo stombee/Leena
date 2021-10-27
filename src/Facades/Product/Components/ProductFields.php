@@ -237,6 +237,24 @@ class ProductFields
     return $this->custom_categories = $custom_categories;
   }
 
+  private function get_custom_tags($product)
+  {
+    $this->custom_tags = null;
+
+    $product = collect($product['custom_tags']);
+
+    $custom_tags = $product->map(function ($value) {
+      return $value["tag"];
+    })->toArray();
+
+    if (is_array($custom_tags) && count($custom_tags) > 0) {
+
+      $custom_tags_string = implode(",", $custom_tags);
+      $this->custom_tags = $custom_tags_string;
+    }
+    return $this;
+  }
+
   private function get_subtype($product)
   {
     return $product['subtype']['name'];
@@ -545,6 +563,7 @@ class ProductFields
     $this->get_colors($parent_data);
     $this->get_color_master();
     $this->get_custom_categories($parent_data);
+    $this->get_custom_tags($parent_data);
 
     //TAGS
 
@@ -560,6 +579,7 @@ class ProductFields
     $custom_categories_tags = null;
     $material_master_tags = null;
     $color_master_tags = null;
+    $custom_tags = null;
 
     (!empty($this->materials)) ? $materials = explode(',', $this->materials) : null;
 
@@ -659,8 +679,9 @@ class ProductFields
       $style_tags[] = 'Style__Shags';
     }
 
+    (!empty($this->custom_tags)) ? $custom_tags = explode(',', $this->custom_tags) : null;
 
-    $tags = collect()->push($material_tags, $material_master_tags, $style_tags, $size_tags, $shape_tags, $price_tags, $category_tags, $color_tags, $color_master_tags, $custom_categories_tags)->flatten()->toArray();
+    $tags = collect()->push($material_tags, $material_master_tags, $style_tags, $size_tags, $shape_tags, $price_tags, $category_tags, $color_tags, $color_master_tags, $custom_categories_tags, $custom_tags)->flatten()->toArray();
 
 
     return implode(",", $tags);

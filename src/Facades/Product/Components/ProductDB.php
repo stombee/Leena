@@ -82,6 +82,20 @@ class ProductDB
     return $color_variants_arr;
 
   }
+  public function getCustomTags()
+  {
+    $custom_tags = DB::connection('mysql2')->select('SELECT pct.real_design, ct.tag FROM br_product_custom_tags as pct INNER JOIN br_custom_tags as ct on  pct.custom_tag_id  = ct.id WHERE pct.deleted_at is NULL ');
+
+    $custom_tags_arr = [];
+
+    foreach ($custom_tags as $custom_tag) 
+    {
+      $custom_tags_arr[$custom_tag->real_design][] = ["real_design" => $custom_tag->real_design, "tag" => $custom_tag->tag];
+    }
+
+    Log::debug('Custom tags are retrieved');
+    return $custom_tags_arr;
+  }
   public function sortImages($images_arr)
   {
     
@@ -124,6 +138,7 @@ class ProductDB
     $images = $this->getImages();
     $images = $this->sortImages($images);
     $color_variants_arr = $this->getColorVariants();
+    $custom_tags = $this->getCustomTags();
     $products = collect();
     $total_count = ShopifyProduct::where('display', '=', 1)->count();
     $maxAtOneTime = 3000;
@@ -155,7 +170,7 @@ class ProductDB
       $data = $data->get()->toArray();
       
 
-      $data = collect($data)->map(function ($data) use ($color_variants_arr,$images) 
+      $data = collect($data)->map(function ($data) use ($color_variants_arr,$images, $custom_tags) 
       {
 
         $data['graphql_id'] = null;
